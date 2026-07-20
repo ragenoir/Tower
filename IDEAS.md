@@ -2,9 +2,9 @@
 
 **Snapshot 2026-07-20** (post Grok 4.5 audit + viral MVP): zero-dep pixel TD (384×288), **4 maps** (incl. Rift air/ground), 5 towers, Campaign+Endless, procedural audio, seeded variants + **daily challenge**, results **Copy/PNG share**, deep links, PWA files, local records + 8 ach, demo F4/`?demo=1`, touch/keyboard, en/uk, git + smoke.
 
-**Done since 2026-07-03 IDEAS Starter Pack**: seeded variants ✓ · deep links ✓ · results share text+PNG ✓ · daily teaser ✓ · PWA manifest+SW ✓ · GA events (play/win/lose/share) ✓ · tower damage (on, low mult) ✓ · Rift map ✓
+**Done since 2026-07-03 IDEAS Starter Pack**: seeded variants ✓ · deep links ✓ · results share text+PNG ✓ · daily teaser ✓ · PWA manifest+SW ✓ · GA events ✓ · Rift map ✓ · tower siege seeded + campaign chip-only (endless destroy) ✓ · volume exclusive layout + % ✓ · results layout fix ✓
 
-**Still open**: publish (itch / GH Pages) · tower-damage 3★ policy · volume re-verify · content (maps/towers) · chill audio · skins
+**Still open**: **publish** (itch / GH Pages) · content (maps/towers) · chill audio · skins · Hard difficulty
 
 **Key strengths to double down on**: procedural audio + tension, demo as trailer, shareable seeds, no-build instant play, 3★ perfect runs.
 

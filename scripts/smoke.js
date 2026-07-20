@@ -118,6 +118,34 @@ const checks = [
     const b = JSON.stringify(TD.getWaveDef(3));
     TD.run.runSeed = null;
     return a === b && a.length > 10;
+  },
+  () => typeof TD.runRand === 'function' && typeof TD.towerDamageCanDestroy === 'function',
+  // Campaign: chip-only (no destroy) protects 3★ fairness
+  () => {
+    TD.run.gameMode = 'campaign';
+    TD.isDemo = false;
+    TD.debug = false;
+    return TD.towerDamageCanDestroy() === false;
+  },
+  // Endless: destroy allowed when master flags on
+  () => {
+    TD.run.gameMode = 'endless';
+    return TD.TOWER_DAMAGE_ENABLED && TD.TOWER_DAMAGE_DESTROY && TD.towerDamageCanDestroy() === true;
+  },
+  // Volume layout: exclusive zones — vol starts after speed3 ends
+  () => {
+    const L = TD.getHudCtrlLayout();
+    const s3End = L.speed3.x + L.speed3.w;
+    return L.vol.x >= s3End && L.mute.x >= L.vol.x + L.vol.w;
+  },
+  // Seeded runRand sequence is deterministic
+  () => {
+    TD._seededRand = TD.createSeededRandom(0xabcde);
+    const a = [TD.runRand(), TD.runRand(), TD.runRand()];
+    TD._seededRand = TD.createSeededRandom(0xabcde);
+    const b = [TD.runRand(), TD.runRand(), TD.runRand()];
+    TD._seededRand = null;
+    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
   }
 ];
 

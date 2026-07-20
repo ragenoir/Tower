@@ -17,31 +17,52 @@ TD.pointInRect = function pointInRect(px, py, rect, pad) {
 
 TD.towerBtnX = function towerBtnX(i) { return TD.HUD.towerX + i * (TD.HUD.towerW + TD.HUD.towerGap); }
 
+/**
+ * Single source of truth for pause/speed/volume/mute geometry.
+ * Non-overlapping zones so volume never steals x3 (historical bug).
+ * Layout in ctrl strip (88px): [||][x1][x2][x3][====vol====][S]
+ */
+TD.getHudCtrlLayout = function getHudCtrlLayout() {
+  const cx = TD.HUD.ctrlX, cy = TD.HUD.row2;
+  const isT = !!TD.isTouch;
+  const bw = isT ? 15 : 14;
+  const gap = 1;
+  let x = cx;
+  const mkBtn = (action, w) => {
+    const b = { x, y: cy - (isT ? 1 : 0), w, h: TD.HUD.btnH + (isT ? 2 : 0), action };
+    x += w + gap;
+    return b;
+  };
+  const pause = mkBtn('pause', bw);
+  const speed1 = mkBtn('speed1', bw);
+  const speed2 = mkBtn('speed2', bw);
+  const speed3 = mkBtn('speed3', bw);
+  x += 2; // gap before volume
+  const volW = isT ? 16 : 15;
+  const vol = {
+    x, y: cy + (isT ? 5 : 7), w: volW, h: isT ? 10 : 8,
+    hitX: x - 1, hitY: cy - 2, hitW: volW + 2, hitH: TD.HUD.btnH + 4,
+    action: 'volume'
+  };
+  x += volW + gap + 1;
+  const mute = mkBtn('mute', isT ? 10 : 8);
+  return { pause, speed1, speed2, speed3, vol, mute, cx, cy, isT };
+};
+
 TD.getUiRects = function getUiRects() {
   const rects = [];
   TD.TOWER_ORDER.forEach((t, i) => {
     rects.push({ x: TD.towerBtnX(i), y: TD.HUD.row1, w: TD.HUD.towerW, h: TD.HUD.towerH, action: 'select', towerType: t });
   });
-  const cx = TD.HUD.ctrlX, cy = TD.HUD.row2;
-  const isT = TD.isTouch;
-  // On touch use significantly larger hit rects (fat-finger friendly).
-  // Positions aligned with (slightly shifted on touch) draw code.
-  const b1 = cx;
-  const b2 = cx + (isT ? 17 : 16);
-  const b3 = cx + (isT ? 34 : 32);
-  const b4 = cx + (isT ? 51 : 48);
-  const bm = cx + (isT ? 82 : 80);
-  const padW = isT ? 8 : 0;
-  const padH = isT ? 6 : 0;
-  rects.push({ x: b1, y: cy - (isT?2:0), w: (isT?16:14) + padW, h: TD.HUD.btnH + padH, action: 'pause' });
-  rects.push({ x: b2, y: cy - (isT?2:0), w: (isT?16:14) + padW, h: TD.HUD.btnH + padH, action: 'speed1' });
-  rects.push({ x: b3, y: cy - (isT?2:0), w: (isT?16:14) + padW, h: TD.HUD.btnH + padH, action: 'speed2' });
-  // Volume hit: generous so you can drag to 0 volume easily. Before speed3 in list order.
-  rects.push({ x: cx + (isT ? 58 : 60), y: cy - 3, w: 22, h: 20, action: 'volume' });
-  rects.push({ x: b4, y: cy - (isT?2:0), w: (isT?16:14) + padW, h: TD.HUD.btnH + padH, action: 'speed3' });
-  rects.push({ x: bm, y: cy - (isT?2:0), w: (isT?10:8) + (isT?6:0), h: TD.HUD.btnH + padH, action: 'mute' });
+  const L = TD.getHudCtrlLayout();
+  // Speeds first, then volume (exclusive x ranges — no pad bleed into volume)
+  [L.pause, L.speed1, L.speed2, L.speed3].forEach(b => {
+    rects.push({ x: b.x, y: b.y, w: b.w, h: b.h, action: b.action });
+  });
+  rects.push({ x: L.vol.hitX, y: L.vol.hitY, w: L.vol.hitW, h: L.vol.hitH, action: 'volume' });
+  rects.push({ x: L.mute.x, y: L.mute.y, w: L.mute.w, h: L.mute.h, action: 'mute' });
   if (r().wavePhase === 'pause' && r().state === TD.STATE.PLAYING) {
-    rects.push({ x: cx + 52, y: TD.HUD.row1 - (isT?1:0), w: 30, h: 16, action: 'startWave' });
+    rects.push({ x: L.cx + 52, y: TD.HUD.row1 - (L.isT ? 1 : 0), w: 30, h: 16, action: 'startWave' });
   }
   if (r().selectedTower) {
     const py = TD.HUD.row2 + 2;
@@ -286,11 +307,8 @@ TD.handleClick = function handleClick() {
     if (a === 'speed3') r().speedMul = 3;
     if (a === 'volume') {
       TD.initAudio();
-      const cx = TD.HUD.ctrlX;
-      const isT = TD.isTouch;
-      const vX = cx + (isT ? 60 : 62);
-      const vW = isT ? 18 : 16;
-      TD.setVolume((TD.mouseX - vX) / vW);
+      const L = TD.getHudCtrlLayout();
+      TD.setVolume((TD.mouseX - L.vol.x) / L.vol.w);
     }
     if (a === 'mute') {
       TD.muted = !TD.muted; TD.initAudio();
@@ -344,33 +362,33 @@ TD.drawHud = function drawHud() {
     TD.drawStatsPanel();
   }
 
-  const cx = TD.HUD.ctrlX, cy = TD.HUD.row2;
-  const isT = TD.isTouch;
-  // Slightly larger visuals on touch for finger comfort (without breaking desktop layout much).
-  const bw = isT ? 16 : 14;
-  const bh = TD.HUD.btnH + (isT ? 2 : 0);
-  const btns = [
-    { x: cx, w: bw, label: r().state === TD.STATE.PAUSED ? '>' : '||', action: 'pause' },
-    { x: cx + 17, w: bw, label: 'x1', action: 'speed1' },
-    { x: cx + 34, w: bw, label: 'x2', action: 'speed2' },
-    { x: cx + 51, w: bw, label: 'x3', action: 'speed3' },
-    { x: cx + 82, w: isT ? 10 : 8, label: TD.muted ? 'M' : 'S', action: 'mute' }
-  ];
-  btns.forEach(b => {
+  const L = TD.getHudCtrlLayout();
+  const cx = L.cx, cy = L.cy, isT = L.isT;
+  const labels = {
+    pause: r().state === TD.STATE.PAUSED ? '>' : '||',
+    speed1: 'x1', speed2: 'x2', speed3: 'x3',
+    mute: TD.muted ? 'M' : 'S'
+  };
+  [L.pause, L.speed1, L.speed2, L.speed3, L.mute].forEach(b => {
     const hov = r().hoverUi && r().hoverUi.action === b.action;
-    px(b.x, cy, b.w, bh, hov ? TD.C.accent : TD.C.shadow);
+    px(b.x, b.y, b.w, b.h, hov ? TD.C.accent : TD.C.shadow);
     const speedActions = { speed1: 1, speed2: 2, speed3: 3 };
     TD.ctx.fillStyle = speedActions[b.action] === r().speedMul ? TD.C.gold : TD.C.text;
     TD.ctx.font = '7px monospace';
     TD.ctx.textAlign = 'center';
-    TD.ctx.fillText(b.label, b.x + b.w / 2, cy + (isT ? 15 : 14));
+    TD.ctx.fillText(labels[b.action], b.x + b.w / 2, b.y + (isT ? 15 : 14));
   });
 
-  // Volume bar: bigger tap target + slightly taller on touch. Position aligned with inflated rect.
-  const volX = cx + (isT ? 60 : 62), volY = cy + (isT ? 5 : 7), volW = isT ? 18 : 16, volH = isT ? 10 : 8;
+  // Volume bar — exclusive zone after x3 (see getHudCtrlLayout)
   const hovVol = r().hoverUi && r().hoverUi.action === 'volume';
-  px(volX, volY, volW, volH, hovVol ? TD.C.uiLight : TD.C.shadow);
-  px(volX + 1, volY + 2, Math.max(1, (volW - 2) * TD.VOL), volH - 4, TD.muted ? '#555' : TD.C.gold);
+  px(L.vol.x, L.vol.y, L.vol.w, L.vol.h, hovVol ? TD.C.uiLight : TD.C.shadow);
+  px(L.vol.x + 1, L.vol.y + 2, Math.max(1, (L.vol.w - 2) * TD.VOL), L.vol.h - 4, TD.muted ? '#555' : TD.C.gold);
+  if (hovVol) {
+    TD.ctx.fillStyle = TD.C.gold;
+    TD.ctx.font = '5px monospace';
+    TD.ctx.textAlign = 'center';
+    TD.ctx.fillText(Math.round(TD.VOL * 100) + '%', L.vol.x + L.vol.w / 2, L.vol.y - 2);
+  }
 
   const wl = TD.getWaveLabel();
   const waveText = r().wavePhase === 'pause'
@@ -713,6 +731,14 @@ TD.drawMenu = function drawMenu() {
     TD.ctx.fillText(TD.t('menu.demoHint'), TD.W / 2, TD.H - 19);
   }
 
+  // Version badge (ship identity)
+  if (TD.VERSION) {
+    TD.ctx.fillStyle = '#444';
+    TD.ctx.font = '5px monospace';
+    TD.ctx.textAlign = 'left';
+    TD.ctx.fillText('v' + TD.VERSION, 4, TD.H - 3);
+  }
+
   // Fullscreen button also visible in menu on touch devices
   if (TD.isTouch) {
     const fx = TD.W - 28, fy = 26, fw = 24, fh = 18;
@@ -974,13 +1000,8 @@ TD.bindInput = function bindInput() {
     // Live volume adjust while dragging over the slider (or moving touch over it)
     if ((mouseDown || TD.isTouch) && r().hoverUi && r().hoverUi.action === 'volume') {
       TD.initAudio();
-      // Use visual bar position for accurate 0..1 calc (hit rect may be inflated for touch).
-      const cx = TD.HUD.ctrlX;
-      const isT = TD.isTouch;
-      const vX = cx + (isT ? 60 : 62);
-      const vW = isT ? 18 : 16;
-      let v = (TD.mouseX - vX) / vW;
-      TD.setVolume(v);
+      const L = TD.getHudCtrlLayout();
+      TD.setVolume((TD.mouseX - L.vol.x) / L.vol.w);
     }
   };
   const onTap = (mx, my) => {

@@ -42,6 +42,7 @@ Results: Copy / PNG · Space menu · Demo: F4 · Debug: F3 · `?debug=1`
 | Graphics | `graphics/*.js` |
 
 ## Current Intent (2026-07-20)
-Ship loop: git ✓ · share + daily + deep links + PWA ✓ · next: publish (GH Pages/itch) · tower-damage policy · content later.
+Ship loop: git ✓ · share/daily/deep/PWA ✓ · tower siege seeded + campaign chip-only ✓ · volume layout exclusive ✓  
+Next: **publish** (GH Pages / itch) · then content.
 
 **Update this file** on structure changes. Max **50 lines**.

@@ -64,8 +64,11 @@ TD.drawDebugOverlay = function drawDebugOverlay() {
   if (TD.debug) {
     ctx.textAlign = 'left';
     ctx.fillStyle = TD.TOWER_DAMAGE_ENABLED ? '#8f8' : '#888';
-    const status = TD.TOWER_DAMAGE_ENABLED ? ('ON mult=' + TD.TOWER_DAMAGE_CHANCE_MULT.toFixed(1)) : 'OFF (set TD.TOWER_DAMAGE_ENABLED=true in console to test)';
-    ctx.fillText('TowerDmg: ' + status + ' (D to toggle in debug)', 4, 22);
+    const destroy = typeof TD.towerDamageCanDestroy === 'function' && TD.towerDamageCanDestroy() ? 'destroy' : 'chip';
+    const status = TD.TOWER_DAMAGE_ENABLED
+      ? ('ON mult=' + TD.TOWER_DAMAGE_CHANCE_MULT.toFixed(2) + ' ' + destroy)
+      : 'OFF';
+    ctx.fillText('TowerDmg: ' + status + ' (D toggle)', 4, 22);
   }
 
   if (TD.mapEditor) {

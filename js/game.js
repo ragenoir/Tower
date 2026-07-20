@@ -38,6 +38,12 @@ TD.createSeededRandom = function createSeededRandom(seed) {
   };
 };
 
+/** Run-scoped RNG (seeded when runSeed set). Prefer for gameplay-affecting rolls. */
+TD.runRand = function runRand() {
+  if (typeof TD._seededRand === 'function') return TD._seededRand();
+  return Math.random();
+};
+
 // Stable per-wave RNG so that getWaveDef(idx) always returns the exact same mutated wave
 // no matter how many times it's called (fixes flickering "Next" preview)
 TD.getWaveRand = function getWaveRand(waveIdx) {
@@ -46,6 +52,14 @@ TD.getWaveRand = function getWaveRand(waveIdx) {
   const base = (parseInt(r().runSeed, 16) || 1) >>> 0;
   const waveSeed = (base ^ (waveIdx * 2654435761)) >>> 0;  // golden ratio mix
   return TD.createSeededRandom(waveSeed);
+};
+
+/** True when siege may destroy/downgrade towers (endless/demo/debug). Campaign = chip-only. */
+TD.towerDamageCanDestroy = function towerDamageCanDestroy() {
+  if (!TD.TOWER_DAMAGE_ENABLED || !TD.TOWER_DAMAGE_DESTROY) return false;
+  if (TD.debug) return true;
+  if (TD.isDemo || r().demo) return true;
+  return r().gameMode === 'endless';
 };
 
 // Demo mode globals (flags set early from config.js)
@@ -450,14 +464,14 @@ TD.getSellValue = function getSellValue(t) {
   return Math.floor((t.invested || 0) * TD.SELL_RATIO * ratio);
 };
 
-// Future hook for tower being damaged (called from enemy proximity or reflection)
+// Tower damaged by rare proximity siege. Gameplay rolls = seeded; FX particles = cosmetic Math.random.
 TD.hitTower = function hitTower(t, amount = 8) {
   if (!t || !TD.TOWER_DAMAGE_ENABLED) return false;
   if (typeof t.integrity !== 'number') return false;
   t.integrity = Math.max(0, t.integrity - amount);
   t.hitFlash = Math.max(t.hitFlash || 0, 0.35);
   TD.bus.emit('sfx', { name: 'towerHit', x: t.slot.x, y: t.slot.y });
-  // more sparks on hit (strengthened)
+  // cosmetic sparks (non-gameplay)
   const pos = t.slot;
   const sparkCount = 10 + Math.floor(Math.random() * 6);
   for (let i = 0; i < sparkCount; i++) {
@@ -469,10 +483,15 @@ TD.hitTower = function hitTower(t, amount = 8) {
       life: 0.25 + Math.random() * 0.35, color: (Math.random() > 0.5 ? '#ffdd88' : '#ffaa44'), size: 1 + Math.random() * 1.5
     });
   }
+  const canDestroy = TD.towerDamageCanDestroy();
   if (t.integrity <= 0) {
-    TD.destroyTower(t);
-  } else if (t.level > 1 && t.integrity < t.maxIntegrity * 0.35 && Math.random() < 0.4) {
-    // rare auto-downgrade when very low
+    if (canDestroy) {
+      TD.destroyTower(t);
+    } else {
+      // Campaign: leave tower at 1 HP so repair is forced, 3★ stays seed-fair
+      t.integrity = 1;
+    }
+  } else if (canDestroy && t.level > 1 && t.integrity < t.maxIntegrity * 0.35 && TD.runRand() < 0.4) {
     t.level = Math.max(1, t.level - 1);
     TD.bus.emit('sfx', { name: 'towerHit', x: t.slot.x, y: t.slot.y });
   }
@@ -625,10 +644,10 @@ TD.fireTower = function fireTower(t, target) {
   const sfx = { arrow: 1, flak: 1, cannon: 1, frost: 1, sniper: 1 }[t.type];
   if (sfx) TD.bus.emit('sfx', { name: t.type, x: t.slot.x, y: t.slot.y });
 
-  // Rare reflect fantasy (only when enabled)
-  if (TD.TOWER_DAMAGE_ENABLED && TD.TOWER_DAMAGE_CHANCE_MULT > 0 && Math.random() < 0.015 * TD.TOWER_DAMAGE_CHANCE_MULT) {
+  // Rare reflect (seeded — affects damage dealt)
+  if (TD.TOWER_DAMAGE_ENABLED && TD.TOWER_DAMAGE_CHANCE_MULT > 0 &&
+      TD.runRand() < 0.015 * TD.TOWER_DAMAGE_CHANCE_MULT) {
     TD.bus.emit('sfx', { name: 'reflect', x: t.slot.x, y: t.slot.y });
-    // counter: damage the target a bit extra (the "reflected" energy)
     if (target && target.alive) {
       TD.damageEnemy(target, Math.floor(TD.getTowerDmg(t) * 0.4), t.type);
     }
@@ -654,13 +673,12 @@ TD.updateTowers = function updateTowers(dt) {
   }
 }
 
-// Rare tower siege (very conservative, off by default).
-// Only called when TOWER_DAMAGE_ENABLED + mult > 0.
-// In debug mode (?debug=1) we boost chance so you can fantasy-test the visuals/FX easily.
+// Rare tower siege. Seeded rolls so same seed → same siege outcomes.
+// Debug (?debug=1) boosts chance for visual testing.
 TD.updateTowerSiege = function updateTowerSiege(dt) {
   if (!TD.TOWER_DAMAGE_ENABLED || !TD.TOWER_DAMAGE_CHANCE_MULT) return;
   let mult = TD.TOWER_DAMAGE_CHANCE_MULT;
-  if (TD.debug) mult = Math.max(mult, 0.8); // debug boost for testing destruction fantasy
+  if (TD.debug) mult = Math.max(mult, 0.8);
   const sd = dt * r().speedMul;
   for (const t of r().towers) {
     if (!t || t.integrity <= 0) continue;
@@ -668,13 +686,13 @@ TD.updateTowerSiege = function updateTowerSiege(dt) {
       if (!e.alive) continue;
       const p = TD.enemyPos(e);
       const dist = Math.hypot(p[0] - t.slot.x, p[1] - t.slot.y);
-      if (dist > 28) continue; // close only
+      if (dist > 28) continue;
       let chance = 0, dmg = 3;
       if (e.type === 'tank') { chance = 0.012; dmg = 5; }
       else if (e.type === 'boss') { chance = 0.035; dmg = 9; }
       else if (e.type === 'armored') { chance = 0.006; dmg = 4; }
       else continue;
-      if (Math.random() < chance * mult * sd * 12) { // scaled by dt
+      if (TD.runRand() < chance * mult * sd * 12) {
         TD.hitTower(t, dmg);
         break;
       }

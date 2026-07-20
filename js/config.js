@@ -41,11 +41,12 @@ TD.STATE = { MENU: 0, PLAYING: 1, PAUSED: 2, WON: 3, LOST: 4 };
 TD.SELL_RATIO = 0.5;
 TD.MAX_ENEMIES = 40;
 
-// Tower damage / destruction fantasy feature.
-// KEEP DISABLED (or 0%) until fully balanced and tested.
-// When enabled, only very rare proximity "siege" hits from specific enemies.
-TD.TOWER_DAMAGE_ENABLED = true; // master switch - small chance in gameplay
-TD.TOWER_DAMAGE_CHANCE_MULT = 0.04; // small / conservative overall (base chances inside for tank/boss/armored)
+// Tower damage / siege fantasy.
+// Campaign: rare integrity chip only (repair matters; no destroy — protects 3★ fairness).
+// Endless / demo / debug: chip + rare destroy + downgrade. Gameplay rolls use seeded RNG.
+TD.TOWER_DAMAGE_ENABLED = true;
+TD.TOWER_DAMAGE_CHANCE_MULT = 0.04;
+TD.TOWER_DAMAGE_DESTROY = true; // allow destroy/downgrade outside campaign
 TD.MAX_PROJECTILES = 80;
 
 TD.DIFFICULTY = {
@@ -76,5 +77,5 @@ TD.urlMode = __params.get('mode') || null;
 TD.urlDiff = __params.get('diff') || null;
 TD.urlSeed = __params.get('seed') || null;
 TD.urlAutostart = __params.has('autostart') || __params.get('start') === '1';
-TD.VERSION = '1.1.0';
+TD.VERSION = '1.1.1';
 })();
