@@ -59,7 +59,9 @@ vm.createContext(ctx);
 const files = [
   'js/config.js', 'js/i18n.js', 'js/data/towers.js', 'js/data/enemies.js', 'js/data/waves.js',
   'js/data/waves-meadow.js', 'js/data/waves-canyon.js', 'js/data/waves-ruins.js', 'js/data/waves-rift.js',
+  'js/data/waves-conflux.js',
   'js/events.js', 'js/maps/pipeline.js', 'js/maps/meadow.js', 'js/maps/canyon.js', 'js/maps/ruins.js', 'js/maps/rift.js',
+  'js/maps/conflux.js',
   'js/maps/validate.js', 'js/maps/index.js', 'js/storage.js', 'js/achievements.js', 'js/audio.js',
   'graphics/state.js', 'graphics/map.js', 'graphics/units.js', 'graphics/fx.js',
   'js/share.js', 'js/game.js', 'js/demo.js', 'js/ui.js', 'js/debug.js', 'js/main.js'
@@ -79,7 +81,14 @@ for (const f of files) {
 
 const TD = ctx.TD;
 const checks = [
-  () => TD.MAP_IDS.length === 4,
+  () => TD.MAP_IDS.length === 5,
+  () => TD.MAPS.conflux && TD.MAPS.conflux.validation && TD.MAPS.conflux.validation.ok === true,
+  () => Array.isArray(TD.MAPS.conflux.portals) && TD.MAPS.conflux.portals.length >= 1,
+  () => {
+    TD.loadMap('conflux');
+    return TD.MAPS.conflux._portals && TD.MAPS.conflux._portals[0].from < TD.MAPS.conflux._portals[0].to
+      && TD.PATH_WAYPOINTS.length > 20;
+  },
   () => TD.TOWER_ORDER.length === 5,
   () => TD.TOWER_TYPES.cannon.hitsAir === false,
   () => TD.TOWER_TYPES.flak.hitsGround === false,
@@ -160,7 +169,7 @@ const checks = [
   },
   // Demo module extracted
   () => typeof TD.updateDemo === 'function' && typeof TD.toggleDemo === 'function' &&
-    Array.isArray(TD.DEMO_CYCLE) && TD.DEMO_CYCLE.length === 4,
+    Array.isArray(TD.DEMO_CYCLE) && TD.DEMO_CYCLE.length === TD.MAP_IDS.length,
   // Share module extracted
   () => typeof TD.getDailySeed === 'function' && typeof TD.buildDeepLink === 'function'
 ];

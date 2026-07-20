@@ -4,7 +4,7 @@ const TD = window.TD;
 const r = () => TD.run;
 
 // Demo mode globals (flags set early from config.js)
-TD.DEMO_CYCLE = ['meadow', 'canyon', 'ruins', 'rift'];
+TD.DEMO_CYCLE = ['meadow', 'canyon', 'ruins', 'rift', 'conflux'];
 TD._demoDecisionCooldown = 0;
 
 TD.getNextDemoMap = function getNextDemoMap() {
@@ -21,7 +21,8 @@ TD.getDemoStarters = function getDemoStarters(mapId) {
     meadow: [ [1,4,6,8,10], [2,5,7,9,11], [1,3,6,8,10], [2,4,5,7,10] ],
     canyon: [ [1,3,5,7,9], [2,4,6,8,10], [1,4,6,8,9], [2,3,5,7,9] ],
     ruins:  [ [1,3,5,7,11], [2,4,6,8,10], [1,4,5,8,11], [2,3,6,8,10] ],
-    rift:   [ [1,4,6,8,10], [2,3,5,7,9], [1,5,7,9,11], [2,4,6,8,11] ]
+    rift:   [ [1,4,6,8,10], [2,3,5,7,9], [1,5,7,9,11], [2,4,6,8,11] ],
+    conflux:[ [1,4,6,8,10], [2,3,5,7,9], [1,5,7,9,11], [2,4,6,8,11] ]
   };
   const idxs = (variants[mapId] || variants.meadow)[Math.floor(Math.random()*4)];
 

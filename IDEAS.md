@@ -1,13 +1,13 @@
 # Tower Defense — Ideas for Improvements, Enhancements, Additions & Virality
 
-**Snapshot 2026-07-20** (shipped v1.2.0): zero-dep pixel TD (384×288), **4 maps** (incl. Rift), 5 towers, Campaign+Endless, procedural audio, seeded variants + daily, share Copy/PNG, deep links, PWA, en/uk, git + smoke.
+**Snapshot 2026-07-20** (v1.3.0): zero-dep pixel TD (384×288), **5 maps** (Rift air split · **Conflux portals**), 5 towers, Campaign+Endless, procedural audio, seeds/daily/share, PWA, en/uk.
 
-**Play:** https://ragenoir.itch.io/tower · https://ragenoir.github.io/Tower/ · demo `?demo=1`  
+**Play:** https://ragenoir.itch.io/tower · https://ragenoir.github.io/Tower/  
 **Repo:** https://github.com/ragenoir/Tower
 
-**Done**: viral MVP ✓ · tech debt ✓ · **GH Pages ✓** · **itch.io ✓** (https://ragenoir.itch.io/tower)
+**Done**: viral MVP ✓ · tech debt ✓ · GH Pages ✓ · itch ✓ · **Conflux map twist ✓**
 
-**Still open (post-ship)**: content (Hard / maps / towers) · chill audio · skins · itch cover/GIFs polish · feedback loop
+**Still open**: Hard difficulty · chill audio · skins · more map twists · itch cover/GIF polish
 
 **Key strengths to double down on**: procedural audio + tension, demo as trailer, shareable seeds, no-build instant play, 3★ perfect runs.
 

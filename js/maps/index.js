@@ -3,19 +3,21 @@
 const TD = window.TD;
 const { TILE } = TD;
 
-TD.MAP_IDS = ['meadow', 'canyon', 'ruins', 'rift'];
+TD.MAP_IDS = ['meadow', 'canyon', 'ruins', 'rift', 'conflux'];
 
 TD.MAPS = {
   meadow: TD.mapMeadow,
   canyon: TD.mapCanyon,
   ruins: TD.mapRuins,
-  rift: TD.mapRift
+  rift: TD.mapRift,
+  conflux: TD.mapConflux
 };
 
 TD.mapMeadow.waves = TD.WAVES_MEADOW || TD.WAVES;
 TD.mapCanyon.waves = TD.WAVES_CANYON || TD.WAVES;
 TD.mapRuins.waves = TD.WAVES_RUINS || TD.WAVES;
 TD.mapRift.waves = TD.WAVES_RIFT || TD.WAVES;
+TD.mapConflux.waves = TD.WAVES_CONFLUX || TD.WAVES;
 
 for (const m of Object.values(TD.MAPS)) {
   m.rows = TD.buildMapRows(m.corners, m.bushes, m.water);
@@ -45,6 +47,21 @@ TD.loadMap = function loadMap(id) {
     };
   } else if (m.airShortcut && m.airShortcut.from != null) {
     m._airShortcut = m.airShortcut; // legacy direct indices
+  }
+  // Conflux-style portals: tile pairs → wp indices
+  if (Array.isArray(m.portals) && TD.findPathWaypointIndex) {
+    m._portals = m.portals.map(p => ({
+      from: TD.findPathWaypointIndex(p.fromTile[0], p.fromTile[1]),
+      to: TD.findPathWaypointIndex(p.toTile[0], p.toTile[1]),
+      chance: p.chance != null ? p.chance : 0.45,
+      minWave: p.minWave != null ? p.minWave : 1,
+      skipBoss: p.skipBoss !== false,
+      typeBonus: p.typeBonus || {},
+      fromTile: p.fromTile,
+      toTile: p.toTile
+    }));
+  } else {
+    m._portals = null;
   }
   TD.BUILD_SLOTS = m.slots.map(([tx, ty]) => ({
     tx, ty, x: tx * TILE + TILE / 2, y: ty * TILE + TILE / 2, tower: null

@@ -1,5 +1,5 @@
 /* Minimal offline-friendly cache for Tower TD (zero-dep PWA). */
-const CACHE = 'tower-td-v1.2.0';
+const CACHE = 'tower-td-v1.3.0';
 const ASSETS = [
   './',
   './index.html',
@@ -14,12 +14,14 @@ const ASSETS = [
   './js/data/waves-canyon.js',
   './js/data/waves-ruins.js',
   './js/data/waves-rift.js',
+  './js/data/waves-conflux.js',
   './js/events.js',
   './js/maps/pipeline.js',
   './js/maps/meadow.js',
   './js/maps/canyon.js',
   './js/maps/ruins.js',
   './js/maps/rift.js',
+  './js/maps/conflux.js',
   './js/maps/validate.js',
   './js/maps/index.js',
   './js/storage.js',

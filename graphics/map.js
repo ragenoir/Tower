@@ -45,6 +45,14 @@ Object.assign(window.TDG, {
       if ((col + row) % 4 === 0) px(x + 3, y + 10, 4, 1, 'rgba(35,55,75,0.4)');
       return;
     }
+    if (S.theme === 'conflux') {
+      // Arcane pools
+      px(x, y, S.TILE, S.TILE, '#1a1430');
+      px(x + 1, y + 1, S.TILE - 2, S.TILE - 2, wave > 0 ? '#2a2050' : '#221a42');
+      px(x + 3, y + 4 + (wave > 0.3 ? 1 : 0), S.TILE - 6, 3, 'rgba(180,140,255,0.28)');
+      px(x + 8, y + 9, 3, 2, 'rgba(220,200,255,0.18)');
+      return;
+    }
     px(x, y, S.TILE, S.TILE, '#2a4a62');
     px(x + 1, y + 1, S.TILE - 2, S.TILE - 2, wave > 0 ? '#3a6a8a' : '#325a78');
     px(x + 3, y + 4 + (wave > 0.3 ? 1 : 0), S.TILE - 6, 3, 'rgba(180,220,255,0.25)');
@@ -93,43 +101,65 @@ Object.assign(window.TDG, {
       else { px(x + 2, y + 11, 2, 1, p.grass[(d.col + d.row + 1) % 3]); px(x + 12, y + 8, 1, 1, p.flowerHi); }
     }
     if (S.theme === 'rift') {
-      // === Visual helpers for the chasm and shortcut (aligned to actual path) ===
       const pulse = 1 + Math.sin(slotPulse * 5) * 0.2;
-
-      // Glowing markers exactly at the air shortcut points (entry and exit)
-      // These mark where flyers launch across the gap vs where ground has to walk the long way
       const fromTile = [11, 3];
       const toTile = [4, 8];
       const drawMarker = (tx, ty) => {
-        const mx = tx * S.TILE + S.TILE/2;
-        const my = ty * S.TILE + S.TILE/2;
+        const mx = tx * S.TILE + S.TILE / 2;
+        const my = ty * S.TILE + S.TILE / 2;
         S.ctx.strokeStyle = 'rgba(140,200,255,0.9)';
         S.ctx.lineWidth = 1;
-        S.ctx.beginPath(); S.ctx.arc(mx, my, 5 * pulse, 0, Math.PI*2); S.ctx.stroke();
-        S.ctx.beginPath(); S.ctx.arc(mx, my, 9 * pulse, 0, Math.PI*2); S.ctx.stroke();
-        px(mx-1, my-1, 3, 3, '#aaddff');
+        S.ctx.beginPath(); S.ctx.arc(mx, my, 5 * pulse, 0, Math.PI * 2); S.ctx.stroke();
+        S.ctx.beginPath(); S.ctx.arc(mx, my, 9 * pulse, 0, Math.PI * 2); S.ctx.stroke();
+        px(mx - 1, my - 1, 3, 3, '#aaddff');
       };
       drawMarker(fromTile[0], fromTile[1]);
       drawMarker(toTile[0], toTile[1]);
-
-      // Draw a clear "air crossing" line across the chasm between the two points
-      // This makes the shortcut route visible on the map itself (flyers take this, ground walks the long road)
-      const fx = fromTile[0] * S.TILE + S.TILE/2;
-      const fy = fromTile[1] * S.TILE + S.TILE/2;
-      const tx = toTile[0] * S.TILE + S.TILE/2;
-      const ty = toTile[1] * S.TILE + S.TILE/2;
-
-      // brighter outer + dashed inner for visibility
+      const fx = fromTile[0] * S.TILE + S.TILE / 2;
+      const fy = fromTile[1] * S.TILE + S.TILE / 2;
+      const tx = toTile[0] * S.TILE + S.TILE / 2;
+      const ty = toTile[1] * S.TILE + S.TILE / 2;
       S.ctx.strokeStyle = 'rgba(90,160,220,0.25)';
       S.ctx.lineWidth = 5;
       S.ctx.setLineDash([]);
       S.ctx.beginPath(); S.ctx.moveTo(fx, fy); S.ctx.lineTo(tx, ty); S.ctx.stroke();
-
       S.ctx.strokeStyle = 'rgba(160,220,255,0.7)';
       S.ctx.lineWidth = 2;
       S.ctx.setLineDash([4, 3]);
       S.ctx.beginPath(); S.ctx.moveTo(fx, fy); S.ctx.lineTo(tx, ty); S.ctx.stroke();
       S.ctx.setLineDash([]);
+    }
+    // Conflux portal gates (entry + exit) + dashed warp line
+    if (S.theme === 'conflux' && typeof window.TD !== 'undefined') {
+      const m = window.TD.MAPS && window.TD.MAPS.conflux;
+      const portals = (m && m._portals) || (m && m.portals) || [];
+      const pulse = 1 + Math.sin(slotPulse * 6) * 0.18;
+      for (const p of portals) {
+        const ft = p.fromTile || [0, 0];
+        const tt = p.toTile || [0, 0];
+        const fx = ft[0] * S.TILE + S.TILE / 2;
+        const fy = ft[1] * S.TILE + S.TILE / 2;
+        const tx = tt[0] * S.TILE + S.TILE / 2;
+        const ty = tt[1] * S.TILE + S.TILE / 2;
+        const gate = (gx, gy, entry) => {
+          S.ctx.strokeStyle = entry ? 'rgba(180,120,255,0.95)' : 'rgba(140,220,180,0.9)';
+          S.ctx.lineWidth = 1;
+          S.ctx.beginPath(); S.ctx.arc(gx, gy, 6 * pulse, 0, Math.PI * 2); S.ctx.stroke();
+          S.ctx.beginPath(); S.ctx.arc(gx, gy, 10 * pulse, 0, Math.PI * 2); S.ctx.stroke();
+          px(gx - 2, gy - 2, 4, 4, entry ? '#c49cff' : '#8fd4a8');
+        };
+        gate(fx, fy, true);
+        gate(tx, ty, false);
+        S.ctx.strokeStyle = 'rgba(160,100,255,0.22)';
+        S.ctx.lineWidth = 4;
+        S.ctx.setLineDash([]);
+        S.ctx.beginPath(); S.ctx.moveTo(fx, fy); S.ctx.lineTo(tx, ty); S.ctx.stroke();
+        S.ctx.strokeStyle = 'rgba(200,150,255,0.65)';
+        S.ctx.lineWidth = 1;
+        S.ctx.setLineDash([3, 3]);
+        S.ctx.beginPath(); S.ctx.moveTo(fx, fy); S.ctx.lineTo(tx, ty); S.ctx.stroke();
+        S.ctx.setLineDash([]);
+      }
     }
     if (pathStart) window.TDG.drawSpawnPortal(pathStart[0], pathStart[1], slotPulse);
     window.TDG.drawBaseSprite(pathEnd[0], pathEnd[1], slotPulse);
@@ -157,7 +187,11 @@ Object.assign(window.TDG, {
     const p = pal();
     const flag = Math.sin(animTime * 5) * 2;
     px(x - 12, y - 8, 24, 16, S.C.shadow);
-    px(x - 10, y - 14, 20, 14, S.theme === 'canyon' ? '#6a5040' : S.theme === 'rift' ? '#2a3a48' : S.C.base);
+    px(x - 10, y - 14, 20, 14,
+      S.theme === 'canyon' ? '#6a5040'
+        : S.theme === 'rift' ? '#2a3a48'
+        : S.theme === 'conflux' ? '#3a2a58'
+        : S.C.base);
     px(x - 8, y - 12, 16, 10, S.C.accent);
     px(x - 2, y - 18, 4, 8, '#6a4a2a');
     px(x - 4 + flag, y - 20, 8, 3, S.C.baseDmg);

@@ -55,10 +55,10 @@ TD.DIFFICULTY = {
 };
 
 TD.MENU_UI = {
-  mapY: 38, mapH: 36, mapW: 54, mapGap: 16,
-  ctrlY: 82, modeH: 16, modeW: 74,
-  diffH: 14, startH: 18, sectionGap: 12,
-  infoH: 62
+  mapY: 38, mapH: 34, mapW: 48, mapGap: 10, // 5 maps must fit 384px wide
+  ctrlY: 80, modeH: 16, modeW: 74,
+  diffH: 14, startH: 18, sectionGap: 10,
+  infoH: 58
 };
 
 // Demo / attract mode constants and early URL param parsing
@@ -77,5 +77,5 @@ TD.urlMode = __params.get('mode') || null;
 TD.urlDiff = __params.get('diff') || null;
 TD.urlSeed = __params.get('seed') || null;
 TD.urlAutostart = __params.has('autostart') || __params.get('start') === '1';
-TD.VERSION = '1.2.0';
+TD.VERSION = '1.3.0';
 })();

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 — 2026-07-20
+- **New map: Conflux** — portal warp twist (seeded chance; bosses never warp; runners bias high)
+- Purple arcane theme, portal gate visuals + WARP! banner, dedicated wave set
+- Menu layout tightened for 5 map thumbnails
+- Demo cycle + music pools + smoke for 5 maps / portal resolve
+
 ## 1.2.0 — 2026-07-20 (publish)
 - Public repo: https://github.com/ragenoir/Tower (`origin` → `main`)
 - GitHub Pages: https://ragenoir.github.io/Tower/

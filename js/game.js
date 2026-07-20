@@ -71,6 +71,7 @@ TD.spawnEnemy = function spawnEnemy(type, opts = {}) {
   let hpMult = mult * (mapMod.enemyHpMult || 1);
   if (type === 'tank') hpMult *= mapMod.tankHpMult || 1;
   if (type === 'flyer') hpMult *= mapMod.flyerHpMult || 1;
+  if (type === 'runner') hpMult *= mapMod.runnerHpMult || 1;
   const hp = Math.round(def.hp * hpMult);
   const e = {
     id: r().enemyId++, type, hp, maxHp: hp,
@@ -181,64 +182,95 @@ TD.moveEnemy = function moveEnemy(e, dt) {
     const need = segLen - e.progress;
     if (remaining >= need) {
       remaining -= need; e.wp++; e.progress = 0;
-      // Rift map non-standard mechanic: flyers take airShortcut across the chasm (skip long ground detour)
       const m = TD.MAPS[TD.currentMapId];
+      // Rift: flyers take airShortcut across the chasm (skip long ground detour)
       const sc = m && m._airShortcut;
       if (e.flying && sc && !e._shortcutUsed) {
         if (e.wp >= (sc.from || 0) && e.wp < (sc.to || 999)) {
-          // Capture origin BEFORE changing anything
           const fromX = cur[0];
           const fromY = cur[1] - (e.flying ? TD.FLY_HEIGHT : 0);
-
           e.wp = sc.to;
           e.progress = 0;
           e._shortcutUsed = true;
-
-          const toWp = TD.PATH_WAYPOINTS[Math.min(e.wp, TD.PATH_WAYPOINTS.length-1)] || cur;
+          const toWp = TD.PATH_WAYPOINTS[Math.min(e.wp, TD.PATH_WAYPOINTS.length - 1)] || cur;
           const toX = toWp[0];
           const toY = toWp[1] - (e.flying ? TD.FLY_HEIGHT : 0);
-
-          // set facing to the outgoing segment after jump to avoid visual "extra move" snap at entry
           const nextWp = TD.PATH_WAYPOINTS[Math.min(e.wp + 1, TD.PATH_WAYPOINTS.length - 1)];
           if (nextWp && toWp) {
             e.facing = Math.atan2(nextWp[1] - toWp[1], nextWp[0] - toWp[0]);
           }
-
-          // Set visual flight state so enemyPos lerps the sprite across the gap
-          // (this is what makes it not feel like pure teleport)
           e._riftCross = {
-            fromX: fromX,
-            fromY: fromY,
-            toX: toX,
-            toY: toY,
+            fromX, fromY, toX, toY,
             start: (typeof performance !== 'undefined' ? performance.now() : Date.now()),
-            duration: 420   // ~0.42s visible straight flight across chasm
+            duration: 420
           };
-
-          // Launch + crossing + arrival particles (complement the lerped sprite)
-          for (let k=0; k<3; k++) {
-            r().particles.push({ x: fromX, y: fromY, vx: (Math.random()-0.5)*25, vy: -15, life: 0.22, color: '#9ad0ff', size: 2 });
+          for (let k = 0; k < 3; k++) {
+            r().particles.push({ x: fromX, y: fromY, vx: (Math.random() - 0.5) * 25, vy: -15, life: 0.22, color: '#9ad0ff', size: 2 });
           }
           for (let k = 0; k < 7; k++) {
             const t = k / 6;
-            const cx = fromX * (1-t) + toX * t;
-            const cy = fromY * (1-t) + toY * t;
             r().particles.push({
-              x: cx, y: cy,
-              vx: (toX - fromX) * 0.7 + (Math.random()-0.5)*20,
+              x: fromX * (1 - t) + toX * t, y: fromY * (1 - t) + toY * t,
+              vx: (toX - fromX) * 0.7 + (Math.random() - 0.5) * 20,
               vy: (toY - fromY) * 0.2 - 4,
-              life: 0.2 + Math.random()*0.08,
-              color: '#7ac8ff', size: 1.5
+              life: 0.2 + Math.random() * 0.08, color: '#7ac8ff', size: 1.5
             });
           }
           for (let k = 0; k < 4; k++) {
             const spread = (k - 1.5) * 14;
             r().particles.push({
-              x: toX + spread*0.2, y: toY,
-              vx: spread*0.4, vy: -8 - Math.random()*5,
+              x: toX + spread * 0.2, y: toY, vx: spread * 0.4, vy: -8 - Math.random() * 5,
               life: 0.28, color: '#a0d0ff', size: 2
             });
           }
+        }
+      }
+      // Conflux: path portals — chance to warp (seeded). Bosses skip by default.
+      if (m && m._portals && m._portals.length && !e._portalUsed) {
+        for (const portal of m._portals) {
+          if (e.wp !== portal.from) continue;
+          if (r().wave + 1 < (portal.minWave || 1)) continue;
+          if (portal.skipBoss && e.type === 'boss') continue;
+          let chance = portal.chance || 0.45;
+          if (portal.typeBonus && portal.typeBonus[e.type] != null) {
+            chance += portal.typeBonus[e.type];
+          }
+          chance = Math.max(0.05, Math.min(0.92, chance));
+          const roll = TD.runRand ? TD.runRand() : Math.random();
+          if (roll > chance) break;
+          const fromX = cur[0];
+          const fromY = cur[1] - (e.flying ? TD.FLY_HEIGHT : 0);
+          e.wp = portal.to;
+          e.progress = 0;
+          e._portalUsed = true;
+          const toWp = TD.PATH_WAYPOINTS[Math.min(e.wp, TD.PATH_WAYPOINTS.length - 1)] || cur;
+          const toX = toWp[0];
+          const toY = toWp[1] - (e.flying ? TD.FLY_HEIGHT : 0);
+          const nextWp = TD.PATH_WAYPOINTS[Math.min(e.wp + 1, TD.PATH_WAYPOINTS.length - 1)];
+          if (nextWp && toWp) {
+            e.facing = Math.atan2(nextWp[1] - toWp[1], nextWp[0] - toWp[0]);
+          }
+          // Short warp streak (different from rift flight — purple arcane)
+          e._portalWarp = {
+            fromX, fromY, toX, toY,
+            start: (typeof performance !== 'undefined' ? performance.now() : Date.now()),
+            duration: 280
+          };
+          if (r().waveBanner == null || (r().waveBanner.life || 0) < 0.4) {
+            r().waveBanner = { text: 'WARP!', life: 0.7 };
+          }
+          for (let k = 0; k < 8; k++) {
+            const t = k / 7;
+            r().particles.push({
+              x: fromX * (1 - t) + toX * t,
+              y: fromY * (1 - t) + toY * t - Math.sin(t * Math.PI) * 12,
+              vx: (Math.random() - 0.5) * 20, vy: -10 - Math.random() * 8,
+              life: 0.25 + Math.random() * 0.15,
+              color: k % 2 ? '#c49cff' : '#7a5cff', size: 1.5 + Math.random()
+            });
+          }
+          TD.bus.emit('sfx', { name: 'spawn', x: toX, y: toY });
+          break;
         }
       }
       if (e.wp >= TD.PATH_WAYPOINTS.length - 1) { TD.reachBase(e); return; }
@@ -263,8 +295,7 @@ TD.reachBase = function reachBase(e) {
 TD.enemyPos = function enemyPos(e) {
   if (e.dying) return [e.deathX, e.deathY];
 
-  // Rift air shortcut: show the flyer visibly flying straight across the chasm for a short time
-  // (so it doesn't look like pure teleport). Gameplay wp is already updated.
+  // Rift air shortcut visual lerp
   if (e._riftCross && e._riftCross.duration) {
     const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
     const elapsed = now - e._riftCross.start;
@@ -273,8 +304,23 @@ TD.enemyPos = function enemyPos(e) {
       delete e._riftCross;
     } else {
       const yOff = e.flying ? -TD.FLY_HEIGHT : 0;
-      const x = e._riftCross.fromX * (1-t) + e._riftCross.toX * t;
-      const y = e._riftCross.fromY * (1-t) + e._riftCross.toY * t + yOff;
+      const x = e._riftCross.fromX * (1 - t) + e._riftCross.toX * t;
+      const y = e._riftCross.fromY * (1 - t) + e._riftCross.toY * t + yOff;
+      return [x, y];
+    }
+  }
+  // Conflux portal warp visual (arc-ish via sin offset handled in particles; sprite straight lerp)
+  if (e._portalWarp && e._portalWarp.duration) {
+    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    const elapsed = now - e._portalWarp.start;
+    const t = Math.min(1, elapsed / e._portalWarp.duration);
+    if (t >= 1) {
+      delete e._portalWarp;
+    } else {
+      const yOff = e.flying ? -TD.FLY_HEIGHT : 0;
+      const lift = Math.sin(t * Math.PI) * 10;
+      const x = e._portalWarp.fromX * (1 - t) + e._portalWarp.toX * t;
+      const y = e._portalWarp.fromY * (1 - t) + e._portalWarp.toY * t + yOff - lift;
       return [x, y];
     }
   }

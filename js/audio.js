@@ -77,7 +77,9 @@ TD.startAmbient = function startAmbient(mapId) {
   let source;
   let isNoise = false;
 
-  if (mapId === 'canyon') {
+  if (mapId === 'conflux') {
+    // subtle purple-space hum (reuse noise with darker filter)
+  } else if (mapId === 'canyon') {
     // wind - noise
     TD.ensureNoiseBuf();
     source = ctx.createBufferSource();
@@ -572,7 +574,9 @@ TD.MUSIC_TRACKS = {
 TD.MAP_MUSIC = {
   meadow: ['meadow-1', 'meadow-2', 'meadow-3', 'the-drum', 'unity', 'faded'],
   canyon: ['canyon-1'],
-  ruins: ['ruins-1', 'ruins-2', 'chords-gm', 'faded']
+  ruins: ['ruins-1', 'ruins-2', 'chords-gm', 'faded'],
+  rift: ['ruins-1', 'faded', 'chords-gm'],
+  conflux: ['ruins-2', 'faded', 'the-drum', 'unity']
 };
 
 TD.selectMusicTrack = function selectMusicTrack(mapId) {

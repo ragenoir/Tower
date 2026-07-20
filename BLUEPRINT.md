@@ -431,13 +431,11 @@ You can (and should) evolve this prompt over time and update the copy in BLUEPRI
 
 - **Repo:** https://github.com/ragenoir/Tower
 - **Play:** https://ragenoir.itch.io/tower · https://ragenoir.github.io/Tower/
-- 4 maps (meadow, canyon, ruins, rift — air/ground split)
-- 5 towers (Arrow, Frost, Sniper, Cannon ground-only, Flak air-only)
-- 15-wave campaign + Endless; tower siege (seeded; campaign chip-only, endless destroy)
-- 8 achievements (all_maps = all 4 maps)
-- Procedural audio; seeded variants + daily challenge
-- Deep links / share / PWA; modules: `share.js`, `game.js`, `demo.js`
-- No build. `node scripts/smoke.js`. Git + CHANGELOG. Optional itch zip via `itch-embed.txt`.
+- **5 maps:** meadow, canyon, ruins, rift (air shortcut), **conflux (portals)**
+- 5 towers; 15-wave campaign + Endless; tower siege (campaign chip-only)
+- Map twists via optional props: `airShortcut`, `portals[]` (resolved in loadMap)
+- Procedural audio; seeds/daily/share/PWA; modules: share / game / demo
+- No build. `node scripts/smoke.js`. Git + CHANGELOG + itch zip notes.
 
 Update or fork this section when forking the blueprint.
 

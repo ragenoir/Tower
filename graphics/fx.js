@@ -84,7 +84,8 @@ Object.assign(window.TDG, {
       meadow: ['GGGGGGGG', 'GGDGGGGG', 'GGDGGGGG', 'GGDDDDGG', 'GGGGGDGG', 'GGGGDDGG', 'GGGDDDGG', 'GGGGDDGG'],
       canyon: ['GGGGGGGG', 'GGDDDDGG', 'GGGGGGDG', 'GGWWWGGG', 'GGDGGGDG', 'GGDGGGDD', 'GGGGGDDD', 'GGGGGDDG'],
       ruins:  ['GGGGGGGG', 'GGDDGGGG', 'GGDDGGGG', 'GGGDDGGG', 'GGWWWGGG', 'GGDDGGGG', 'GGGDDDGG', 'GGGGGDDG'],
-      rift:   ['GGDDDDGG', 'GGDWWWDG', 'GGDWWWDG', 'GGDWDWDG', 'GGDWWWDG', 'GGDDDDGG', 'GGDGGGDG', 'GGDDDDGG']
+      rift:   ['GGDDDDGG', 'GGDWWWDG', 'GGDWWWDG', 'GGDWDWDG', 'GGDWWWDG', 'GGDDDDGG', 'GGDGGGDG', 'GGDDDDGG'],
+      conflux:['GDDDDDGG', 'GGGGGDGG', 'GDDDDDGG', 'GDGGGWDG', 'GDDDDDGG', 'GGGGGDGG', 'GDDDDDDG', 'GGGGGDDG']
     };
     const rows = MAPS_PREVIEW[mapId] || MAPS_PREVIEW.meadow;
     const tw = w / 8, th = h / rows.length;

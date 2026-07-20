@@ -27,6 +27,11 @@ const THEMES = {
     grass: ['#2a3a3a', '#223232', '#2f4340'],
     road: '#5a6a72', roadDark: '#3a454c', roadEdge: '#2a343a', roadHi: '#7a8a92',
     flower: '#7aa0b0', flowerHi: '#9ac0d0', rock: '#556066', bush: '#3a5a52'
+  },
+  conflux: {
+    grass: ['#2a2840', '#242038', '#322e4a'],
+    road: '#6a5a88', roadDark: '#4a3a68', roadEdge: '#3a2a58', roadHi: '#8a7ab0',
+    flower: '#c49cff', flowerHi: '#e0c0ff', rock: '#5a4a78', bush: '#4a3a6a'
   }
 };
 

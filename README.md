@@ -1,6 +1,6 @@
 # Tower Defense (browser, no build step)
 
-Pixel TD — 4 maps (Rift air/ground), 5 towers, seeded variants, Campaign + Endless, share + daily + PWA.
+Pixel TD — **5 maps** (Rift air/ground · **Conflux portals**), 5 towers, seeded variants, Campaign + Endless.
 
 **Play:** [itch.io](https://ragenoir.itch.io/tower) · [GitHub Pages](https://ragenoir.github.io/Tower/) · demo [`?demo=1`](https://ragenoir.github.io/Tower/?demo=1)  
 **Repo:** [github.com/ragenoir/Tower](https://github.com/ragenoir/Tower)
@@ -8,37 +8,33 @@ Pixel TD — 4 maps (Rift air/ground), 5 towers, seeded variants, Campaign + End
 ## Layout
 ```
 index.html  manifest.json  sw.js  icon-192.png  .nojekyll  CHANGELOG.md
-js/… (share · game · demo · ui · …)  graphics/*  scripts/smoke.js
-BLUEPRINT.md  IDEAS.md
+js/… (share · game · demo · ui · maps/* · data/*)  graphics/*  scripts/smoke.js
 ```
 
 ## Script order
-config → i18n → data/* → events → maps/* → storage → achievements → audio → graphics/* → **share → game → demo** → ui → debug → main.  
-Locale: default **en**, **uk** if `navigator.languages[0]` is Ukrainian.
+config → i18n → data/* → events → maps/* → storage → achievements → audio → graphics/* → share → game → demo → ui → debug → main.
 
 ## Features
-- Campaign 15 waves/map; Endless; stars/records; 8 achievements; version badge
-- Easy/Normal; 3★ = full HP, no sell, no pause
-- Towers: Arrow/Frost/Sniper/Cannon(g)/Flak(a); integrity (campaign chip-only)
-- Seeded variants + Daily; deep links `?map=&mode=&diff=&seed=&autostart=1`
-- Results: Copy text + PNG; demo F4/`?demo=1`; procedural audio; PWA on http(s)
+- 5 maps · Campaign 15 waves · Endless · Easy/Normal · 3★ rules · 8 achievements
+- **Conflux**: portal warp (seeded; runners love it; bosses walk full path)
+- **Rift**: flyers shortcut the chasm
+- Seeded variants + Daily · deep links · Results Copy/PNG · demo F4 · procedural audio · PWA
 
 ## Controls
-Menu: ←→ map · ↑↓ mode · Q difficulty · Seed/Daily · Space start  
-Game: click · N wave · T target · R sell · V vol · 1-3 speed · Results: Copy/PNG
+Menu: ←→ map · ↑↓ mode · Q difficulty · Seed/Daily · Space  
+Game: click · N wave · T target · R sell · V vol · 1-3 speed
 
-## Dev / publish
-`node scripts/smoke.js` · GitHub Pages from `main` · itch: zip root HTML/JS (see `itch-embed.txt`)
+## Dev
+`node scripts/smoke.js` · re-upload itch zip after content drops
 
 ## Edit guide (for AI)
 | Area | Files |
 |------|-------|
-| Balance / waves | `js/data/*.js`, `js/maps/<id>.js` |
-| Core / demo / share | `js/game.js`, `js/demo.js`, `js/share.js` |
-| Locale / HUD | `js/i18n.js`, `js/ui.js` |
-| Audio / PWA | `js/audio.js`, `manifest.json`, `sw.js` |
+| New map / twist | `js/maps/<id>.js`, `waves-*.js`, `maps/index.js`, graphics theme/preview |
+| Core / portals | `js/game.js` (moveEnemy), `js/maps/index.js` (loadMap resolve) |
+| Demo / share | `js/demo.js`, `js/share.js` |
 
 ## Current Intent (2026-07-20)
-**Shipped** — itch + GH Pages. Next: content (Hard / map twist) or polish from feedback.
+Shipped itch + Pages. **v1.3.0 Conflux** map twist. Next: balance feedback or Hard.
 
 **Update this file** on structure changes. Max **50 lines**.
