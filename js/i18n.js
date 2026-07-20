@@ -53,7 +53,7 @@ const STR = {
     'ach.boss_kill': 'Hunter',
     'ach.boss_kill_desc': 'Kill a boss',
     'ach.all_maps': 'Traveler',
-    'ach.all_maps_desc': 'Win on all 3 maps',
+    'ach.all_maps_desc': 'Win on all 4 maps',
     'game.boss': 'BOSS!',
     'game.combo': 'COMBO x{combo} +{bonus}g',
     'game.milestone': 'MILESTONE E{wave} +{bonus}g',
@@ -68,7 +68,15 @@ const STR = {
     'demo.label': 'DEMO',
     'demo.exitHint': 'F4 or any key \u2014 play',
     'demo.soundHint': 'Space — enable sound',
-    'menu.demoHint': 'F4 — Demo / attract (AI plays)'
+    'menu.demoHint': 'F4 — Demo / attract (AI plays)',
+    'menu.daily': 'Daily challenge',
+    'menu.dailyActive': 'Daily · seed {seed}',
+    'menu.variant': 'Variant: {seed} (tap reroll)',
+    'result.copy': 'Copy text',
+    'result.png': 'Save PNG',
+    'result.copied': 'Copied!',
+    'result.challenge': 'Challenge a friend with the link in the text',
+    'result.seed': 'Seed: {seed}'
   },
   uk: {
     'tagline': 'Будуй вежі · відбивай хвилі · захисти базу',
@@ -127,7 +135,7 @@ const STR = {
     'ach.boss_kill': 'Мисливець',
     'ach.boss_kill_desc': 'Вбий боса',
     'ach.all_maps': 'Мандрівник',
-    'ach.all_maps_desc': 'Перемога на 3 картах',
+    'ach.all_maps_desc': 'Перемога на 4 картах',
     'game.boss': 'БОС!',
     'game.combo': 'COMBO x{combo} +{bonus}g',
     'game.milestone': 'MILESTONE E{wave} +{bonus}g',
@@ -137,7 +145,15 @@ const STR = {
     'demo.label': 'ДЕМО',
     'demo.exitHint': 'F4 або будь-яка клавіша \u2014 грати',
     'demo.soundHint': 'Пробіл — ввімкнути звук',
-    'menu.demoHint': 'F4 — Демо режим (ШІ грає)'
+    'menu.demoHint': 'F4 — Демо режим (ШІ грає)',
+    'menu.daily': 'Щоденний челендж',
+    'menu.dailyActive': 'Сьогодні · seed {seed}',
+    'menu.variant': 'Варіант: {seed} (tap reroll)',
+    'result.copy': 'Копіювати',
+    'result.png': 'PNG картка',
+    'result.copied': 'Скопійовано!',
+    'result.challenge': 'Посилання для друга — у тексті',
+    'result.seed': 'Seed: {seed}'
   }
 };
 

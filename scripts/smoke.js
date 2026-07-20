@@ -21,11 +21,26 @@ const ctx = {
   location: { search: '' },
   Math, parseInt, parseFloat, setTimeout, setInterval, clearInterval: noop,
   URLSearchParams: class {
-    constructor(s = '') { this.s = String(s || ''); }
-    has(k) { return this.s.includes(k) || this.s.includes(k + '='); }
-    get(k) {
-      const m = new RegExp(k + '=([^&]*)').exec(this.s);
-      return m ? decodeURIComponent(m[1]) : (this.s.includes(k) ? '1' : null);
+    constructor(s = '') {
+      this._m = new Map();
+      const str = String(s || '').replace(/^\?/, '');
+      if (str) {
+        for (const part of str.split('&')) {
+          if (!part) continue;
+          const eq = part.indexOf('=');
+          const k = eq >= 0 ? decodeURIComponent(part.slice(0, eq)) : decodeURIComponent(part);
+          const v = eq >= 0 ? decodeURIComponent(part.slice(eq + 1)) : '';
+          this._m.set(k, v);
+        }
+      }
+    }
+    has(k) { return this._m.has(k); }
+    get(k) { return this._m.has(k) ? this._m.get(k) : null; }
+    set(k, v) { this._m.set(k, String(v)); }
+    toString() {
+      const parts = [];
+      for (const [k, v] of this._m) parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+      return parts.join('&');
     }
   },
   AudioContext: class {
@@ -86,7 +101,24 @@ const checks = [
   () => typeof TD.waveHasBoss === 'function' && TD.SFX.bossSpawn && TD.SFX.bossWarn,
   () => TD.locale === 'en' && TD.t('tagline').includes('Build towers'),
   () => TD.achLabel(TD.ACHIEVEMENTS[0]).length > 0,
-  () => typeof TD.isDemo === 'boolean' && typeof TD.DEMO_RESTART_DELAY === 'number'
+  () => typeof TD.isDemo === 'boolean' && typeof TD.DEMO_RESTART_DELAY === 'number',
+  () => typeof TD.generateSeed === 'function' && typeof TD.getDailySeed === 'function',
+  () => typeof TD.getDailyMapId === 'function' && TD.MAP_IDS.includes(TD.getDailyMapId()),
+  () => typeof TD.buildDeepLink === 'function' && TD.buildDeepLink({ mapId: 'rift', mode: 'endless', seed: 'abc' }).includes('map=rift'),
+  () => typeof TD.formatRunShareText === 'function' && TD.formatRunShareText({
+    won: true, mapId: 'meadow', mode: 'campaign', stars: 3, wave: 15, time: 120, kills: 40, seed: 'dead'
+  }).includes('Seed: dead'),
+  () => typeof TD.copyRunShareText === 'function' && typeof TD.saveRunSharePng === 'function',
+  () => typeof TD.applyUrlDeepLink === 'function' && typeof TD.track === 'function',
+  () => TD.VERSION && String(TD.VERSION).length > 0,
+  // Seeded wave defs must be stable for the same runSeed + wave index
+  () => {
+    TD.run.runSeed = 'abcd1';
+    const a = JSON.stringify(TD.getWaveDef(3));
+    const b = JSON.stringify(TD.getWaveDef(3));
+    TD.run.runSeed = null;
+    return a === b && a.length > 10;
+  }
 ];
 
 for (const [i, fn] of checks.entries()) {

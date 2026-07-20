@@ -81,12 +81,29 @@ TD.toGame = function toGame(mx, my) {
 
 TD.bindInput();
 
+// Apply deep-link challenge params into menu (maps must already be loaded).
+if (typeof TD.applyUrlDeepLink === 'function') TD.applyUrlDeepLink();
+
+// Register lightweight PWA service worker when served over http(s).
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator &&
+    typeof location !== 'undefined' && (location.protocol === 'http:' || location.protocol === 'https:')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* file:// or offline ok */ });
+  });
+}
+
 // Auto-start demo/attract mode if requested via ?demo (or F4 later).
 // Call synchronously so any transient activation from navigation click can unlock AudioContext.
 if (TD.isDemo) {
   TD.initAudio();
   const map = TD.demoMap || TD.getNextDemoMap() || 'meadow';
   TD.startGame(map, 'campaign');
+} else if (TD.urlAutostart && !TD.isDemo) {
+  // Challenge links can autostart after applying map/mode/seed into menu state.
+  const run = TD.run;
+  const map = run.menuMap || 'meadow';
+  const mode = run.menuMode || 'campaign';
+  TD.startGame(map, mode, run.menuSeed);
 }
 
 // ─── Main loop ───────────────────────────────────────────────
@@ -101,6 +118,11 @@ TD.update = function update(dt) {
   // decay temporary tower target mode hints (visible even briefly on pause/results)
   for (const t of (r().towers || [])) {
     if (t && t._modeHintLife > 0) t._modeHintLife -= dt * 2.2;
+  }
+
+  if (r().shareFlash && r().shareFlash.life > 0) {
+    r().shareFlash.life -= dt;
+    if (r().shareFlash.life <= 0) r().shareFlash = null;
   }
 
   if (r().state !== TD.STATE.PLAYING) {

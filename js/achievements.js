@@ -47,7 +47,7 @@ TD.checkAchievements = function checkAchievements(result) {
   if (stats && stats.bossKills > 0) TD.unlockAchievement('boss_kill');
   if (result.won && result.mode === 'campaign') {
     const wins = TD.MAP_IDS.filter(id => parseInt(localStorage.getItem('bestWave_' + id) || '0') >= TD.getCampaignWaveCount()).length;
-    if (wins >= 3) TD.unlockAchievement('all_maps');
+    if (wins >= TD.MAP_IDS.length) TD.unlockAchievement('all_maps');
   }
 };
 })();

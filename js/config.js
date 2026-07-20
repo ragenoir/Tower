@@ -70,4 +70,11 @@ const __params = (typeof location !== 'undefined' && location.search)
 TD.debug = __params.has('debug');
 TD.isDemo = !!__params.get('demo');
 TD.demoMap = (__params.get('demo') && __params.get('demo') !== '1') ? __params.get('demo') : null;
+// Deep-link / challenge params (applied after maps load in main.js)
+TD.urlMap = __params.get('map') || null;
+TD.urlMode = __params.get('mode') || null;
+TD.urlDiff = __params.get('diff') || null;
+TD.urlSeed = __params.get('seed') || null;
+TD.urlAutostart = __params.has('autostart') || __params.get('start') === '1';
+TD.VERSION = '1.1.0';
 })();

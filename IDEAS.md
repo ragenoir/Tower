@@ -1,9 +1,12 @@
 # Tower Defense — Ideas for Improvements, Enhancements, Additions & Virality
 
-**Based on full review of README + implemented code (2026-07-03).**  
-Current game: zero-dependency pixel TD (384×288 canvas), 3 maps, 5 towers, Campaign+Endless, procedural AW-style audio (standout feature), local records + 8 ach, demo/attract (F4 / ?demo=1), full touch/keyboard, bilingual (en/uk).
+**Snapshot 2026-07-20** (post Grok 4.5 audit + viral MVP): zero-dep pixel TD (384×288), **4 maps** (incl. Rift air/ground), 5 towers, Campaign+Endless, procedural audio, seeded variants + **daily challenge**, results **Copy/PNG share**, deep links, PWA files, local records + 8 ach, demo F4/`?demo=1`, touch/keyboard, en/uk, git + smoke.
 
-**Key strengths to double down on**: procedural audio + tension, charming pixel feel, smart self-playing demo, no-build instant play, combo + milestone pops, 3★ perfect runs, local progression.
+**Done since 2026-07-03 IDEAS Starter Pack**: seeded variants ✓ · deep links ✓ · results share text+PNG ✓ · daily teaser ✓ · PWA manifest+SW ✓ · GA events (play/win/lose/share) ✓ · tower damage (on, low mult) ✓ · Rift map ✓
+
+**Still open**: publish (itch / GH Pages) · tower-damage 3★ policy · volume re-verify · content (maps/towers) · chill audio · skins
+
+**Key strengths to double down on**: procedural audio + tension, demo as trailer, shareable seeds, no-build instant play, 3★ perfect runs.
 
 ## 1. Polish / UX / QoL (Quick wins)
 - Finalize volume slider: ensure full range reachable (no x3 bleed on left half), add live % label during drag/hover, click-to-set anywhere on visual bar. (Addresses latest user report.)

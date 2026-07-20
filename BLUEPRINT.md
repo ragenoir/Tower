@@ -111,7 +111,7 @@ config → i18n → data → events → maps/* → storage → achievements → 
   - Categorized ideas (Polish, Content, Balance, Viral, Tech)
   - Prioritized "Starter Pack" (3-6 items)
   - Open questions for the human
-- **Inline comments**: Especially "why" decisions (fixed size, TOWER_DAMAGE_ENABLED=false by default, etc.).
+- **Inline comments**: Especially "why" decisions (fixed size, TOWER_DAMAGE_ENABLED currently true with low mult — re-evaluate for 3★ fairness).
 - **Edit guide**: Table of "if you change X, touch these files".
 
 **Tower habit**: The AI was told "full review of README + implemented code" before suggesting. Replicate this.
@@ -424,19 +424,20 @@ You can (and should) evolve this prompt over time and update the copy in BLUEPRI
 
 ---
 
-## Appendix: Tower-Specific Snapshot (2026-07-08)
+## Appendix: Tower-Specific Snapshot (2026-07-20)
 
 - 4 maps (meadow, canyon, ruins, rift — rift has air/ground split)
 - 5 towers (Arrow, Frost, Sniper, Cannon ground-only, Flak air-only)
-- 15-wave campaign per map + Endless
-- 8 achievements
-- Fully procedural audio (multiple tracks per map pool, tension, ducking, positional-ish pan)
-- Seeded replay variants (light mutations planned)
-- ?demo=1, ?debug=1, ?seed=, F keys
-- local records (stars, time, endless wave) + ach
-- Strong mobile (touch, fullscreen, rotate hint, larger pads)
-- Google Analytics present (light)
-- No build. `node scripts/smoke.js` is the only "tooling"
+- 15-wave campaign per map + Endless; tower integrity siege (TOWER_DAMAGE_ENABLED=true, mult 0.04)
+- 8 achievements (all_maps requires all 4 maps)
+- Fully procedural audio (multiple tracks per map pool, tension, ducking, pan)
+- Seeded variants + daily challenge (date seed + rotating map)
+- Deep links: `?map=&mode=&diff=&seed=&autostart=1` · `?demo=1` · `?debug=1`
+- Results share: copy brag text + PNG card
+- PWA: manifest.json + sw.js + icon-192.png (needs http(s) host)
+- local records + GA events (play_start / win / lose / share)
+- Mobile: touch, fullscreen, visualViewport, rotate hint
+- No build. `node scripts/smoke.js` is the only "tooling". Git initialized 2026-07-20.
 
 Update or fork this section when forking the blueprint.
 

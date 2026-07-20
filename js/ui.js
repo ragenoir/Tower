@@ -93,9 +93,22 @@ TD.getMenuRects = function getMenuRects() {
     { x: TD.W / 2 - 36, y: diffY - (isT?2:0), w: 72, h: dh, action: 'difficulty' },
     { x: TD.W / 2 - 46, y: startY - (isT?3:0), w: 92, h: sh, action: 'start' }
   );
-  // Variant seed reroll for noticeable different runs on same map (light random on waves/enemies)
+  // Variant seed reroll + daily challenge (date-derived seed + rotating map)
   const seedY = startY + sh + 4;
-  rects.push({ x: TD.W / 2 - 55, y: seedY, w: 110, h: 12, action: 'rerollSeed' });
+  rects.push({ x: TD.W / 2 - 92, y: seedY, w: 100, h: 12, action: 'rerollSeed' });
+  rects.push({ x: TD.W / 2 + 12, y: seedY, w: 80, h: 12, action: 'dailyChallenge' });
+  if (TD.isTouch) {
+    rects.push({ x: TD.W - 28, y: 26, w: 24, h: 18, action: 'fullscreen' });
+  }
+  return rects;
+}
+
+/** Hit rects on victory/defeat for share actions (do not dismiss results). */
+TD.getResultsRects = function getResultsRects() {
+  const rects = [];
+  const by = TD.H / 2 + 40;
+  rects.push({ x: TD.W / 2 - 92, y: by, w: 86, h: 16, action: 'shareCopy' });
+  rects.push({ x: TD.W / 2 + 6, y: by, w: 86, h: 16, action: 'sharePng' });
   if (TD.isTouch) {
     rects.push({ x: TD.W - 28, y: 26, w: 24, h: 18, action: 'fullscreen' });
   }
@@ -161,8 +174,17 @@ TD.updateHover = function updateHover() {
     }
     return;
   }
-  const isResultsOrMenu = r().state === TD.STATE.WON || r().state === TD.STATE.LOST;
-  if (r().state !== TD.STATE.PLAYING && r().state !== TD.STATE.PAUSED && !isResultsOrMenu) return;
+  const isResults = r().state === TD.STATE.WON || r().state === TD.STATE.LOST;
+  if (isResults) {
+    for (const rect of TD.getResultsRects()) {
+      if (TD.pointInRect(TD.mouseX, TD.mouseY, rect, TD.isTouch ? 2 : 0)) {
+        r().hoverUi = rect;
+        return;
+      }
+    }
+    return;
+  }
+  if (r().state !== TD.STATE.PLAYING && r().state !== TD.STATE.PAUSED) return;
 
   for (const rect of TD.getUiRects()) {
     // Rely on the inflated rect sizes for touch (see getUiRects). Only tiny extra pad.
@@ -203,20 +225,47 @@ TD.handleClick = function handleClick() {
         TD.startGame(r().menuMap, r().menuMode, r().menuSeed);
       }
       if (r().hoverMenu.action === 'rerollSeed') {
-        r().menuSeed = TD.generateSeed ? TD.generateSeed() : Math.floor(Math.random()*0xfffff).toString(16);
+        r().menuSeed = TD.generateSeed ? TD.generateSeed() : Math.floor(Math.random() * 0xfffff).toString(16);
+        r().menuDaily = false;
+      }
+      if (r().hoverMenu.action === 'dailyChallenge') {
+        r().menuSeed = TD.getDailySeed ? TD.getDailySeed() : 'daily';
+        if (TD.getDailyMapId) r().menuMap = TD.getDailyMapId();
+        r().menuMode = 'campaign';
+        r().menuDaily = true;
+      }
+      if (r().hoverMenu.action === 'fullscreen') {
+        TD.toggleFullscreen && TD.toggleFullscreen();
       }
     } else {
-      TD.startGame(r().menuMap, r().menuMode);
+      TD.startGame(r().menuMap, r().menuMode, r().menuSeed);
     }
     return;
   }
   if (r().state === TD.STATE.WON || r().state === TD.STATE.LOST) {
-    // allow fullscreen even on results screen
     if (r().hoverUi && r().hoverUi.action === 'fullscreen') {
       TD.toggleFullscreen && TD.toggleFullscreen();
       return;
     }
-    TD.resetGame(); return;
+    if (r().hoverUi && r().hoverUi.action === 'shareCopy') {
+      const res = r().lastRunResult;
+      TD.copyRunShareText(res).then((ok) => {
+        r().shareFlash = { text: TD.t('result.copied'), life: 1.4 };
+        if (ok && TD.track) TD.track('share', { method: 'copy', map_id: res?.mapId, won: !!res?.won });
+      });
+      return;
+    }
+    if (r().hoverUi && r().hoverUi.action === 'sharePng') {
+      const res = r().lastRunResult;
+      const ok = TD.saveRunSharePng(res);
+      if (ok) {
+        r().shareFlash = { text: 'PNG', life: 1.2 };
+        if (TD.track) TD.track('share', { method: 'png', map_id: res?.mapId, won: !!res?.won });
+      }
+      return;
+    }
+    TD.resetGame();
+    return;
   }
   if (r().hoverUi) {
     const a = r().hoverUi.action;
@@ -568,15 +617,21 @@ TD.drawMenu = function drawMenu() {
   TD.ctx.font = 'bold 8px monospace';
   TD.ctx.fillText('START', TD.W / 2, startY + 13);
 
-  // Variant seed display + reroll (pure random on waves/enemies for noticeable variety on same map)
-  if (!r().menuSeed) r().menuSeed = TD.generateSeed ? TD.generateSeed() : Math.floor(Math.random()*0xfffff).toString(16);
+  // Variant seed + Daily challenge
+  if (!r().menuSeed) r().menuSeed = TD.generateSeed ? TD.generateSeed() : Math.floor(Math.random() * 0xfffff).toString(16);
   const seedY = startY + u.startH + 4;
   const hovSeed = r().hoverMenu && r().hoverMenu.action === 'rerollSeed';
-  px(TD.W / 2 - 55, seedY, 110, 12, hovSeed ? TD.C.accent : TD.C.shadow);
+  const hovDaily = r().hoverMenu && r().hoverMenu.action === 'dailyChallenge';
+  const dailySeed = TD.getDailySeed ? TD.getDailySeed() : '';
+  const isDaily = !!r().menuDaily || (r().menuSeed === dailySeed);
+  px(TD.W / 2 - 92, seedY, 100, 12, hovSeed ? TD.C.accent : TD.C.shadow);
+  px(TD.W / 2 + 12, seedY, 80, 12, hovDaily || isDaily ? TD.C.accent : TD.C.shadow);
   TD.ctx.fillStyle = TD.C.text;
   TD.ctx.font = '5px monospace';
   TD.ctx.textAlign = 'center';
-  TD.ctx.fillText('Variant: ' + r().menuSeed + ' (tap to reroll)', TD.W / 2, seedY + 8);
+  TD.ctx.fillText(TD.t('menu.variant', { seed: r().menuSeed }), TD.W / 2 - 42, seedY + 8);
+  TD.ctx.fillStyle = isDaily ? TD.C.gold : TD.C.text;
+  TD.ctx.fillText(isDaily ? TD.t('menu.dailyActive', { seed: dailySeed }) : TD.t('menu.daily'), TD.W / 2 + 52, seedY + 8);
 
   const infoY = seedY + 14 + u.sectionGap;  // push the records box down to avoid overlap with the new Variant line
   const bx = 20, by = infoY, bw = TD.W - 40, bh = u.infoH;
@@ -670,30 +725,29 @@ TD.drawResultsScreen = function drawResultsScreen() {
   const totalWaves = TD.getCampaignWaveCount();
   TD.ctx.fillStyle = 'rgba(26,26,46,0.88)';
   TD.ctx.fillRect(0, 0, TD.W, TD.H);
-  const boxH = result.won && result.mode === 'campaign' ? 164 : 132; // extra room to reduce risk of text overlapping stars/lines on tight canvas
-  px(TD.W / 2 - 100, TD.H / 2 - 72, 200, boxH, 'rgba(42,42,62,0.95)');
+  // Extra height for share buttons (Copy + PNG)
+  const boxH = result.won && result.mode === 'campaign' ? 188 : 156;
+  px(TD.W / 2 - 100, TD.H / 2 - 78, 200, boxH, 'rgba(42,42,62,0.95)');
   TD.ctx.strokeStyle = TD.C.uiBorder;
-  TD.ctx.strokeRect(TD.W / 2 - 100, TD.H / 2 - 72, 200, boxH);
+  TD.ctx.strokeRect(TD.W / 2 - 100, TD.H / 2 - 78, 200, boxH);
 
   TD.ctx.fillStyle = result.won ? TD.C.gold : TD.C.baseDmg;
   TD.ctx.font = 'bold 18px monospace';
   TD.ctx.textAlign = 'center';
-  TD.ctx.fillText(result.won ? 'VICTORY!' : 'DEFEAT', TD.W / 2, TD.H / 2 - 48);
+  TD.ctx.fillText(result.won ? 'VICTORY!' : 'DEFEAT', TD.W / 2, TD.H / 2 - 54);
 
   const mapName = TD.MAPS[result.mapId]?.name || result.mapId;
   if (result.won && result.mode === 'campaign') {
     TD.ctx.fillStyle = TD.C.text;
     TD.ctx.font = '8px monospace';
-    TD.ctx.fillText(mapName, TD.W / 2, TD.H / 2 - 32);
-    TDG.drawStars(TD.W / 2, TD.H / 2 - 16, result.stars, 14);
+    TD.ctx.fillText(mapName, TD.W / 2, TD.H / 2 - 38);
+    TDG.drawStars(TD.W / 2, TD.H / 2 - 22, result.stars, 14);
 
     const best = TD.getBestStars(result.mapId);
     if (best > 0 && best !== result.stars) {
-      // Moved higher (was H/2-4 which collided with stars and first stat line at H/2-8).
-      // Safer position above the stars row with breathing room.
       TD.ctx.fillStyle = '#777';
       TD.ctx.font = '6px monospace';
-      TD.ctx.fillText(TD.t('result.bestStars', { n: best }), TD.W / 2, TD.H / 2 - 28);
+      TD.ctx.fillText(TD.t('result.bestStars', { n: best }), TD.W / 2, TD.H / 2 - 34);
     }
   }
 
@@ -724,14 +778,13 @@ TD.drawResultsScreen = function drawResultsScreen() {
     }),
     TD.t('result.time', { time: TD.formatTime(result.time), best: '' })
   ];
-  if (result.seed) lines.push('Seed: ' + result.seed);
-  lines.forEach((ln, i) => TD.ctx.fillText(ln, TD.W / 2, TD.H / 2 - 8 + i * 12));
+  if (result.seed) lines.push(TD.t('result.seed', { seed: result.seed }));
+  lines.forEach((ln, i) => TD.ctx.fillText(ln, TD.W / 2, TD.H / 2 - 10 + i * 11));
 
-  // show tower losses if any (for the new vulnerability fantasy)
   if (result.towersLost > 0) {
     TD.ctx.fillStyle = '#a66';
     TD.ctx.font = '6px monospace';
-    TD.ctx.fillText('Towers lost: ' + result.towersLost, TD.W / 2, TD.H / 2 + 8 + lines.length * 12);
+    TD.ctx.fillText('Towers lost: ' + result.towersLost, TD.W / 2, TD.H / 2 + 4 + lines.length * 11);
   }
 
   if (result.won && result.mode === 'campaign') {
@@ -742,15 +795,35 @@ TD.drawResultsScreen = function drawResultsScreen() {
       if (result.baseHp < TD.BASE_HP_MAX) tips.push(TD.t('result.tipHp'));
       if (result.sells > 0) tips.push(TD.t('result.tipNoSell'));
       if (result.pauses > 0) tips.push(TD.t('result.tipNoPause'));
-      TD.ctx.fillText(TD.t('result.stillPossible', { tips: tips.join('  ') }), TD.W / 2, TD.H / 2 + 44);
+      TD.ctx.fillText(TD.t('result.stillPossible', { tips: tips.join('  ') }), TD.W / 2, TD.H / 2 + 34);
     } else {
-      TD.ctx.fillText(TD.t('result.perfect'), TD.W / 2, TD.H / 2 + 44);
+      TD.ctx.fillText(TD.t('result.perfect'), TD.W / 2, TD.H / 2 + 34);
     }
   }
 
+  // Share buttons
+  const by = TD.H / 2 + 40;
+  const hovCopy = r().hoverUi && r().hoverUi.action === 'shareCopy';
+  const hovPng = r().hoverUi && r().hoverUi.action === 'sharePng';
+  px(TD.W / 2 - 92, by, 86, 16, hovCopy ? TD.C.accent : TD.C.shadow);
+  px(TD.W / 2 + 6, by, 86, 16, hovPng ? TD.C.accent : TD.C.shadow);
+  TD.ctx.strokeStyle = TD.C.uiBorder;
+  TD.ctx.strokeRect(TD.W / 2 - 92, by, 86, 16);
+  TD.ctx.strokeRect(TD.W / 2 + 6, by, 86, 16);
+  TD.ctx.fillStyle = TD.C.gold;
+  TD.ctx.font = '6px monospace';
+  TD.ctx.fillText(TD.t('result.copy'), TD.W / 2 - 49, by + 11);
+  TD.ctx.fillText(TD.t('result.png'), TD.W / 2 + 49, by + 11);
+
+  if (r().shareFlash && r().shareFlash.life > 0) {
+    TD.ctx.fillStyle = TD.C.gold;
+    TD.ctx.font = '6px monospace';
+    TD.ctx.fillText(r().shareFlash.text || TD.t('result.copied'), TD.W / 2, by - 6);
+  }
+
   TD.ctx.fillStyle = '#666';
-  TD.ctx.font = '7px monospace';
-  TD.ctx.fillText(TD.t('result.menu'), TD.W / 2, TD.H / 2 + (result.won && result.mode === 'campaign' ? 60 : 48));
+  TD.ctx.font = '6px monospace';
+  TD.ctx.fillText(TD.t('result.menu'), TD.W / 2, by + 28);
 }
 
 TD.drawPause = function drawPause() {
@@ -926,7 +999,14 @@ TD.bindInput = function bindInput() {
       if (e.code === 'ArrowUp' || e.code === 'KeyW') r().menuMode = 'campaign';
       if (e.code === 'ArrowDown' || e.code === 'KeyS') r().menuMode = 'endless';
       if (e.code === 'KeyQ') TD.cycleMenuDifficulty();
-      if (e.code === 'Space' || e.code === 'Enter') { TD.initAudio(); TD.startGame(r().menuMap, r().menuMode); }
+      if (e.code === 'Space' || e.code === 'Enter') {
+        TD.initAudio();
+        TD.startGame(r().menuMap, r().menuMode, r().menuSeed);
+      }
+      if (e.code === 'KeyR') {
+        r().menuSeed = TD.generateSeed ? TD.generateSeed() : Math.floor(Math.random() * 0xfffff).toString(16);
+        r().menuDaily = false;
+      }
       return;
     }
     if (r().state === TD.STATE.WON || r().state === TD.STATE.LOST) { if (e.code === 'Space' || e.code === 'Enter') TD.resetGame(); return; }
