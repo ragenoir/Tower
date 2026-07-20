@@ -93,20 +93,30 @@ TD.getMenuRects = function getMenuRects() {
     { x: TD.W / 2 - 36, y: diffY - (isT?2:0), w: 72, h: dh, action: 'difficulty' },
     { x: TD.W / 2 - 46, y: startY - (isT?3:0), w: 92, h: sh, action: 'start' }
   );
-  // Variant seed reroll + daily challenge (date-derived seed + rotating map)
+  // Variant seed reroll + daily challenge (must match drawMenu geometry)
   const seedY = startY + sh + 4;
-  rects.push({ x: TD.W / 2 - 92, y: seedY, w: 100, h: 12, action: 'rerollSeed' });
-  rects.push({ x: TD.W / 2 + 12, y: seedY, w: 80, h: 12, action: 'dailyChallenge' });
+  const seedBtnW = 88, dailyBtnW = 72, seedGap = 8;
+  const seedPairW = seedBtnW + seedGap + dailyBtnW;
+  const seedBtnX = TD.W / 2 - seedPairW / 2;
+  const dailyBtnX = seedBtnX + seedBtnW + seedGap;
+  rects.push({ x: seedBtnX, y: seedY, w: seedBtnW, h: 12, action: 'rerollSeed' });
+  rects.push({ x: dailyBtnX, y: seedY, w: dailyBtnW, h: 12, action: 'dailyChallenge' });
   if (TD.isTouch) {
     rects.push({ x: TD.W - 28, y: 26, w: 24, h: 18, action: 'fullscreen' });
   }
   return rects;
 }
 
+/** Shared Y positions for results share buttons (draw + hit-test must match). */
+TD.getResultsShareY = function getResultsShareY() {
+  // Computed once per frame in drawResultsScreen; fallback if not drawn yet
+  return (r()._resultsShareY != null) ? r()._resultsShareY : (TD.H / 2 + 52);
+};
+
 /** Hit rects on victory/defeat for share actions (do not dismiss results). */
 TD.getResultsRects = function getResultsRects() {
   const rects = [];
-  const by = TD.H / 2 + 40;
+  const by = TD.getResultsShareY();
   rects.push({ x: TD.W / 2 - 92, y: by, w: 86, h: 16, action: 'shareCopy' });
   rects.push({ x: TD.W / 2 + 6, y: by, w: 86, h: 16, action: 'sharePng' });
   if (TD.isTouch) {
@@ -617,23 +627,28 @@ TD.drawMenu = function drawMenu() {
   TD.ctx.font = 'bold 8px monospace';
   TD.ctx.fillText('START', TD.W / 2, startY + 13);
 
-  // Variant seed + Daily challenge
+  // Variant seed + Daily challenge (short labels to fit 384px)
   if (!r().menuSeed) r().menuSeed = TD.generateSeed ? TD.generateSeed() : Math.floor(Math.random() * 0xfffff).toString(16);
   const seedY = startY + u.startH + 4;
   const hovSeed = r().hoverMenu && r().hoverMenu.action === 'rerollSeed';
   const hovDaily = r().hoverMenu && r().hoverMenu.action === 'dailyChallenge';
   const dailySeed = TD.getDailySeed ? TD.getDailySeed() : '';
   const isDaily = !!r().menuDaily || (r().menuSeed === dailySeed);
-  px(TD.W / 2 - 92, seedY, 100, 12, hovSeed ? TD.C.accent : TD.C.shadow);
-  px(TD.W / 2 + 12, seedY, 80, 12, hovDaily || isDaily ? TD.C.accent : TD.C.shadow);
+  // Two equal buttons with gap, centered
+  const seedBtnW = 88, dailyBtnW = 72, seedGap = 8;
+  const seedPairW = seedBtnW + seedGap + dailyBtnW;
+  const seedBtnX = TD.W / 2 - seedPairW / 2;
+  const dailyBtnX = seedBtnX + seedBtnW + seedGap;
+  px(seedBtnX, seedY, seedBtnW, 12, hovSeed ? TD.C.accent : TD.C.shadow);
+  px(dailyBtnX, seedY, dailyBtnW, 12, hovDaily || isDaily ? TD.C.accent : TD.C.shadow);
   TD.ctx.fillStyle = TD.C.text;
   TD.ctx.font = '5px monospace';
   TD.ctx.textAlign = 'center';
-  TD.ctx.fillText(TD.t('menu.variant', { seed: r().menuSeed }), TD.W / 2 - 42, seedY + 8);
+  TD.ctx.fillText(TD.t('menu.variant', { seed: r().menuSeed }), seedBtnX + seedBtnW / 2, seedY + 8);
   TD.ctx.fillStyle = isDaily ? TD.C.gold : TD.C.text;
-  TD.ctx.fillText(isDaily ? TD.t('menu.dailyActive', { seed: dailySeed }) : TD.t('menu.daily'), TD.W / 2 + 52, seedY + 8);
+  TD.ctx.fillText(isDaily ? TD.t('menu.dailyActive', { seed: dailySeed }) : TD.t('menu.daily'), dailyBtnX + dailyBtnW / 2, seedY + 8);
 
-  const infoY = seedY + 14 + u.sectionGap;  // push the records box down to avoid overlap with the new Variant line
+  const infoY = seedY + 16 + Math.max(4, u.sectionGap - 4);
   const bx = 20, by = infoY, bw = TD.W - 40, bh = u.infoH;
   px(bx, by, bw, bh, 'rgba(42,42,62,0.8)');
   TD.ctx.strokeStyle = TD.C.uiBorder;
@@ -723,36 +738,11 @@ TD.drawResultsScreen = function drawResultsScreen() {
   const result = r().lastRunResult;
   if (!result) return;
   const totalWaves = TD.getCampaignWaveCount();
-  TD.ctx.fillStyle = 'rgba(26,26,46,0.88)';
-  TD.ctx.fillRect(0, 0, TD.W, TD.H);
-  // Extra height for share buttons (Copy + PNG)
-  const boxH = result.won && result.mode === 'campaign' ? 188 : 156;
-  px(TD.W / 2 - 100, TD.H / 2 - 78, 200, boxH, 'rgba(42,42,62,0.95)');
-  TD.ctx.strokeStyle = TD.C.uiBorder;
-  TD.ctx.strokeRect(TD.W / 2 - 100, TD.H / 2 - 78, 200, boxH);
-
-  TD.ctx.fillStyle = result.won ? TD.C.gold : TD.C.baseDmg;
-  TD.ctx.font = 'bold 18px monospace';
-  TD.ctx.textAlign = 'center';
-  TD.ctx.fillText(result.won ? 'VICTORY!' : 'DEFEAT', TD.W / 2, TD.H / 2 - 54);
-
+  const cx = TD.W / 2;
+  const campWin = result.won && result.mode === 'campaign';
   const mapName = TD.MAPS[result.mapId]?.name || result.mapId;
-  if (result.won && result.mode === 'campaign') {
-    TD.ctx.fillStyle = TD.C.text;
-    TD.ctx.font = '8px monospace';
-    TD.ctx.fillText(mapName, TD.W / 2, TD.H / 2 - 38);
-    TDG.drawStars(TD.W / 2, TD.H / 2 - 22, result.stars, 14);
 
-    const best = TD.getBestStars(result.mapId);
-    if (best > 0 && best !== result.stars) {
-      TD.ctx.fillStyle = '#777';
-      TD.ctx.font = '6px monospace';
-      TD.ctx.fillText(TD.t('result.bestStars', { n: best }), TD.W / 2, TD.H / 2 - 34);
-    }
-  }
-
-  TD.ctx.fillStyle = TD.C.text;
-  TD.ctx.font = '8px monospace';
+  // Build content lines first so we can stack without overlap
   const bestEndless = TD.getBestEndless(result.mapId);
   const bestTime = TD.getBestTime(result.mapId);
   const waveLine = result.mode === 'endless'
@@ -760,9 +750,11 @@ TD.drawResultsScreen = function drawResultsScreen() {
       wave: result.wave,
       best: bestEndless > 0 ? TD.t('result.bestEndless', { n: bestEndless }) : ''
     })
-    : result.won ? totalWaves + '/' + totalWaves + TD.t('rec.sep') + mapName
-    : TD.t('result.waveCampaign', { wave: result.wave, total: totalWaves, map: mapName });
-  const lines = result.won && result.mode === 'campaign' ? [
+    : result.won
+      ? totalWaves + '/' + totalWaves + TD.t('rec.sep') + mapName
+      : TD.t('result.waveCampaign', { wave: result.wave, total: totalWaves, map: mapName });
+
+  const lines = campWin ? [
     TD.t('result.time', {
       time: TD.formatTime(result.time),
       best: bestTime > 0 ? TD.t('result.bestTime', { time: TD.formatTime(bestTime) }) : ''
@@ -779,51 +771,105 @@ TD.drawResultsScreen = function drawResultsScreen() {
     TD.t('result.time', { time: TD.formatTime(result.time), best: '' })
   ];
   if (result.seed) lines.push(TD.t('result.seed', { seed: result.seed }));
-  lines.forEach((ln, i) => TD.ctx.fillText(ln, TD.W / 2, TD.H / 2 - 10 + i * 11));
+  if (result.towersLost > 0) lines.push('Towers lost: ' + result.towersLost);
 
-  if (result.towersLost > 0) {
-    TD.ctx.fillStyle = '#a66';
-    TD.ctx.font = '6px monospace';
-    TD.ctx.fillText('Towers lost: ' + result.towersLost, TD.W / 2, TD.H / 2 + 4 + lines.length * 11);
-  }
-
-  if (result.won && result.mode === 'campaign') {
-    TD.ctx.fillStyle = '#777';
-    TD.ctx.font = '6px monospace';
+  let tipLine = null;
+  if (campWin) {
     if (result.stars < 3) {
       const tips = [];
       if (result.baseHp < TD.BASE_HP_MAX) tips.push(TD.t('result.tipHp'));
       if (result.sells > 0) tips.push(TD.t('result.tipNoSell'));
       if (result.pauses > 0) tips.push(TD.t('result.tipNoPause'));
-      TD.ctx.fillText(TD.t('result.stillPossible', { tips: tips.join('  ') }), TD.W / 2, TD.H / 2 + 34);
+      if (tips.length) tipLine = TD.t('result.stillPossible', { tips: tips.join('  ') });
     } else {
-      TD.ctx.fillText(TD.t('result.perfect'), TD.W / 2, TD.H / 2 + 34);
+      tipLine = TD.t('result.perfect');
     }
   }
 
-  // Share buttons
-  const by = TD.H / 2 + 40;
+  // Sequential layout (fixed canvas 288 tall — no absolute collisions)
+  const lineH = 10;
+  const padTop = 14;
+  const titleH = 20;
+  const headerH = campWin ? 28 : 4; // map + stars
+  const tipH = tipLine ? 12 : 0;
+  const shareH = 20;
+  const menuH = 14;
+  const gaps = 6 + 4 + 6 + 4; // between sections
+  const contentH = padTop + titleH + headerH + lines.length * lineH + tipH + shareH + menuH + gaps + 10;
+  const boxH = Math.min(TD.H - 20, Math.max(140, contentH));
+  const boxY = Math.floor((TD.H - boxH) / 2);
+  const boxX = cx - 100;
+  const boxW = 200;
+
+  TD.ctx.fillStyle = 'rgba(26,26,46,0.88)';
+  TD.ctx.fillRect(0, 0, TD.W, TD.H);
+  px(boxX, boxY, boxW, boxH, 'rgba(42,42,62,0.95)');
+  TD.ctx.strokeStyle = TD.C.uiBorder;
+  TD.ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+  let y = boxY + padTop + 12; // baseline for title text
+  TD.ctx.textAlign = 'center';
+  TD.ctx.fillStyle = result.won ? TD.C.gold : TD.C.baseDmg;
+  TD.ctx.font = 'bold 16px monospace';
+  TD.ctx.fillText(result.won ? 'VICTORY!' : 'DEFEAT', cx, y);
+  y += titleH;
+
+  if (campWin) {
+    TD.ctx.fillStyle = TD.C.text;
+    TD.ctx.font = '7px monospace';
+    const best = TD.getBestStars(result.mapId);
+    const bestTag = (best > 0 && best !== result.stars) ? '  ' + TD.t('result.bestStars', { n: best }) : '';
+    TD.ctx.fillText(mapName + bestTag, cx, y);
+    y += 10;
+    TDG.drawStars(cx, y + 2, result.stars, 10);
+    y += 16;
+  } else {
+    y += 4;
+  }
+
+  TD.ctx.font = '7px monospace';
+  lines.forEach((ln) => {
+    TD.ctx.fillStyle = (ln.indexOf('Towers lost') === 0) ? '#a66' : TD.C.text;
+    TD.ctx.fillText(ln, cx, y);
+    y += lineH;
+  });
+
+  if (tipLine) {
+    y += 4;
+    TD.ctx.fillStyle = '#888';
+    TD.ctx.font = '6px monospace';
+    // Truncate very long tip lines so they stay inside the box
+    let tip = tipLine;
+    if (tip.length > 42) tip = tip.slice(0, 40) + '…';
+    TD.ctx.fillText(tip, cx, y);
+    y += tipH;
+  }
+
+  y += 6;
+  const by = y;
+  r()._resultsShareY = by;
   const hovCopy = r().hoverUi && r().hoverUi.action === 'shareCopy';
   const hovPng = r().hoverUi && r().hoverUi.action === 'sharePng';
-  px(TD.W / 2 - 92, by, 86, 16, hovCopy ? TD.C.accent : TD.C.shadow);
-  px(TD.W / 2 + 6, by, 86, 16, hovPng ? TD.C.accent : TD.C.shadow);
+  px(cx - 92, by, 86, 16, hovCopy ? TD.C.accent : TD.C.shadow);
+  px(cx + 6, by, 86, 16, hovPng ? TD.C.accent : TD.C.shadow);
   TD.ctx.strokeStyle = TD.C.uiBorder;
-  TD.ctx.strokeRect(TD.W / 2 - 92, by, 86, 16);
-  TD.ctx.strokeRect(TD.W / 2 + 6, by, 86, 16);
+  TD.ctx.strokeRect(cx - 92, by, 86, 16);
+  TD.ctx.strokeRect(cx + 6, by, 86, 16);
   TD.ctx.fillStyle = TD.C.gold;
   TD.ctx.font = '6px monospace';
-  TD.ctx.fillText(TD.t('result.copy'), TD.W / 2 - 49, by + 11);
-  TD.ctx.fillText(TD.t('result.png'), TD.W / 2 + 49, by + 11);
+  TD.ctx.fillText(TD.t('result.copy'), cx - 49, by + 11);
+  TD.ctx.fillText(TD.t('result.png'), cx + 49, by + 11);
 
   if (r().shareFlash && r().shareFlash.life > 0) {
     TD.ctx.fillStyle = TD.C.gold;
     TD.ctx.font = '6px monospace';
-    TD.ctx.fillText(r().shareFlash.text || TD.t('result.copied'), TD.W / 2, by - 6);
+    TD.ctx.fillText(r().shareFlash.text || TD.t('result.copied'), cx, by - 4);
   }
 
+  y = by + 28;
   TD.ctx.fillStyle = '#666';
   TD.ctx.font = '6px monospace';
-  TD.ctx.fillText(TD.t('result.menu'), TD.W / 2, by + 28);
+  TD.ctx.fillText(TD.t('result.menu'), cx, y);
 }
 
 TD.drawPause = function drawPause() {
