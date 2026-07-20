@@ -1,7 +1,8 @@
 # Changelog
 
 ## 1.2.0 — 2026-07-20 (publish)
-- Public play URL: GitHub Pages (`ragenoir.github.io/Tower`)
+- Public repo: https://github.com/ragenoir/Tower (`origin` → `main`)
+- Play URL: GitHub Pages (`ragenoir.github.io/Tower`) — enable once: Settings → Pages → Deploy from branch `main` / root
 - Add `.nojekyll` for static Pages hosting
 - Docs sync: README, IDEAS, BLUEPRINT, CHANGELOG for ship status
 - `itch-embed.txt` notes for browser embed / zip upload

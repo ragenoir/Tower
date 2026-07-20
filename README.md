@@ -2,7 +2,7 @@
 
 Pixel TD — 4 maps (Rift air/ground), 5 towers, seeded variants, Campaign + Endless, share + daily + PWA.
 
-**Play:** [ragenoir.github.io/Tower](https://ragenoir.github.io/Tower/) · local: open `index.html` · demo: [`?demo=1`](https://ragenoir.github.io/Tower/?demo=1)
+**Repo:** [github.com/ragenoir/Tower](https://github.com/ragenoir/Tower) · **Play (Pages):** [ragenoir.github.io/Tower](https://ragenoir.github.io/Tower/) · demo: [`?demo=1`](https://ragenoir.github.io/Tower/?demo=1)
 
 ## Layout
 ```

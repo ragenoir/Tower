@@ -2,9 +2,10 @@
 
 **Snapshot 2026-07-20** (shipped v1.2.0): zero-dep pixel TD (384×288), **4 maps** (incl. Rift), 5 towers, Campaign+Endless, procedural audio, seeded variants + daily, share Copy/PNG, deep links, PWA, en/uk, git + smoke + **GitHub Pages**.
 
-**Play:** https://ragenoir.github.io/Tower/ · demo: `?demo=1`
+**Repo:** https://github.com/ragenoir/Tower · **Play:** https://ragenoir.github.io/Tower/ · demo: `?demo=1`  
+*(If Pages 404: Settings → Pages → Branch `main` / `/` (root) → Save.)*
 
-**Done since 2026-07-03 IDEAS Starter Pack**: seeded variants ✓ · deep links ✓ · results share ✓ · daily ✓ · PWA ✓ · GA events ✓ · Rift ✓ · tower siege policy ✓ · volume layout ✓ · results layout ✓ · tech debt split ✓ · **publish (GH Pages) ✓**
+**Done since 2026-07-03 IDEAS Starter Pack**: seeded variants ✓ · deep links ✓ · results share ✓ · daily ✓ · PWA ✓ · GA events ✓ · Rift ✓ · tower siege policy ✓ · volume layout ✓ · results layout ✓ · tech debt split ✓ · **git push public repo ✓** · GH Pages (one Settings click if not live)
 
 **Still open**: content (maps/towers) · chill audio · skins · Hard difficulty · itch.io listing (optional, zip ready)
 
