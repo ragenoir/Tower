@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0 — 2026-07-20 (publish)
+- Public play URL: GitHub Pages (`ragenoir.github.io/Tower`)
+- Add `.nojekyll` for static Pages hosting
+- Docs sync: README, IDEAS, BLUEPRINT, CHANGELOG for ship status
+- `itch-embed.txt` notes for browser embed / zip upload
+
 ## 1.1.2 — 2026-07-20
 - Tech debt: extract `js/demo.js` (attract AI) and `js/share.js` (seeds, deep links, PNG/text share)
 - Remove unused `graphics.js` stub

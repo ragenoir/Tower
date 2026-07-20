@@ -1,12 +1,12 @@
 # Tower Defense — Ideas for Improvements, Enhancements, Additions & Virality
 
-**Snapshot 2026-07-20** (post Grok 4.5 audit + viral MVP): zero-dep pixel TD (384×288), **4 maps** (incl. Rift air/ground), 5 towers, Campaign+Endless, procedural audio, seeded variants + **daily challenge**, results **Copy/PNG share**, deep links, PWA files, local records + 8 ach, demo F4/`?demo=1`, touch/keyboard, en/uk, git + smoke.
+**Snapshot 2026-07-20** (shipped v1.2.0): zero-dep pixel TD (384×288), **4 maps** (incl. Rift), 5 towers, Campaign+Endless, procedural audio, seeded variants + daily, share Copy/PNG, deep links, PWA, en/uk, git + smoke + **GitHub Pages**.
 
-**Done since 2026-07-03 IDEAS Starter Pack**: seeded variants ✓ · deep links ✓ · results share text+PNG ✓ · daily teaser ✓ · PWA manifest+SW ✓ · GA events ✓ · Rift map ✓ · tower siege seeded + campaign chip-only (endless destroy) ✓ · volume exclusive layout + % ✓ · results layout fix ✓
+**Play:** https://ragenoir.github.io/Tower/ · demo: `?demo=1`
 
-**Tech debt closed 2026-07-20**: `js/demo.js` + `js/share.js` split · `graphics.js` removed · smoke expanded · CHANGELOG · demo TDZ fix
+**Done since 2026-07-03 IDEAS Starter Pack**: seeded variants ✓ · deep links ✓ · results share ✓ · daily ✓ · PWA ✓ · GA events ✓ · Rift ✓ · tower siege policy ✓ · volume layout ✓ · results layout ✓ · tech debt split ✓ · **publish (GH Pages) ✓**
 
-**Still open**: **publish** (later) · content (maps/towers) · chill audio · skins · Hard difficulty
+**Still open**: content (maps/towers) · chill audio · skins · Hard difficulty · itch.io listing (optional, zip ready)
 
 **Key strengths to double down on**: procedural audio + tension, demo as trailer, shareable seeds, no-build instant play, 3★ perfect runs.
 

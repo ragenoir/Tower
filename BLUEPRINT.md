@@ -427,20 +427,16 @@ You can (and should) evolve this prompt over time and update the copy in BLUEPRI
 
 ---
 
-## Appendix: Tower-Specific Snapshot (2026-07-20)
+## Appendix: Tower-Specific Snapshot (2026-07-20, v1.2.0 published)
 
-- 4 maps (meadow, canyon, ruins, rift — rift has air/ground split)
+- **Play:** https://ragenoir.github.io/Tower/ (GitHub Pages from `main`)
+- 4 maps (meadow, canyon, ruins, rift — air/ground split)
 - 5 towers (Arrow, Frost, Sniper, Cannon ground-only, Flak air-only)
-- 15-wave campaign per map + Endless; tower integrity siege (TOWER_DAMAGE_ENABLED=true, mult 0.04)
-- 8 achievements (all_maps requires all 4 maps)
-- Fully procedural audio (multiple tracks per map pool, tension, ducking, pan)
-- Seeded variants + daily challenge (date seed + rotating map)
-- Deep links: `?map=&mode=&diff=&seed=&autostart=1` · `?demo=1` · `?debug=1`
-- Results share: copy brag text + PNG card
-- PWA: manifest.json + sw.js + icon-192.png (needs http(s) host)
-- local records + GA events (play_start / win / lose / share)
-- Mobile: touch, fullscreen, visualViewport, rotate hint
-- No build. `node scripts/smoke.js` is the only "tooling". Git initialized 2026-07-20.
+- 15-wave campaign + Endless; tower siege (seeded; campaign chip-only, endless destroy)
+- 8 achievements (all_maps = all 4 maps)
+- Procedural audio; seeded variants + daily challenge
+- Deep links / share / PWA; modules: `share.js`, `game.js`, `demo.js`
+- No build. `node scripts/smoke.js`. Git + CHANGELOG. Optional itch zip via `itch-embed.txt`.
 
 Update or fork this section when forking the blueprint.
 

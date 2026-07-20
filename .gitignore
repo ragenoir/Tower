@@ -1,13 +1,15 @@
-.DS_Store
+# Local screenshots dropped into the project folder
 **/.DS_Store
 *.log
-.idea/
-.vscode/
 *.swp
 *~
 .AppleDouble
+.DS_Store
 .LSOverride
-# Local screenshots dropped into the project folder
-Знімок*.png
-Screenshot*.png
+.idea/
+.vscode/
 Screen Shot*.png
+Screenshot*.png
+dist/
+tower-td-*-itch.zip
+Знімок*.png
