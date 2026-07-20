@@ -1,1 +1,0 @@
-/** @deprecated Load graphics/state.js → map.js → units.js → fx.js via index.html */

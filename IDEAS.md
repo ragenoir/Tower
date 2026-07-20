@@ -4,7 +4,9 @@
 
 **Done since 2026-07-03 IDEAS Starter Pack**: seeded variants ✓ · deep links ✓ · results share text+PNG ✓ · daily teaser ✓ · PWA manifest+SW ✓ · GA events ✓ · Rift map ✓ · tower siege seeded + campaign chip-only (endless destroy) ✓ · volume exclusive layout + % ✓ · results layout fix ✓
 
-**Still open**: **publish** (itch / GH Pages) · content (maps/towers) · chill audio · skins · Hard difficulty
+**Tech debt closed 2026-07-20**: `js/demo.js` + `js/share.js` split · `graphics.js` removed · smoke expanded · CHANGELOG · demo TDZ fix
+
+**Still open**: **publish** (later) · content (maps/towers) · chill audio · skins · Hard difficulty
 
 **Key strengths to double down on**: procedural audio + tension, demo as trailer, shareable seeds, no-build instant play, 3★ perfect runs.
 

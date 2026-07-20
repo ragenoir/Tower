@@ -1,48 +1,46 @@
 # Tower Defense (browser, no build step)
 
-Pixel TD — 4 maps (Rift: air/ground split), 5 towers (incl. Flak), seeded variants, Campaign + Endless, share + daily + PWA. Open `index.html` (or host for SW).
+Pixel TD — 4 maps (Rift air/ground), 5 towers, seeded variants, Campaign + Endless, share + daily + PWA. Open `index.html` (http(s) for SW).
 
 ## Layout
 ```
-index.html  manifest.json  sw.js  icon-192.png
-js/config.js  js/i18n.js  js/data/*  js/events.js  js/maps/*  js/storage.js
-js/achievements.js  js/audio.js  js/game.js  js/ui.js  js/debug.js  js/main.js
+index.html  manifest.json  sw.js  icon-192.png  CHANGELOG.md
+js/config.js  i18n  data/*  events  maps/*  storage  achievements  audio
+js/share.js  game.js  demo.js  ui.js  debug.js  main.js
 graphics/*  scripts/smoke.js
 BLUEPRINT.md  IDEAS.md
 ```
 
 ## Script order
-config → i18n → data/* → events → maps/* → storage → achievements → audio → graphics/* → game → ui → debug → main. Locale: default **en**, **uk** if `navigator.languages[0]` is Ukrainian (`js/i18n.js`, `TD.t`).
+config → i18n → data/* → events → maps/* → storage → achievements → audio → graphics/* → **share → game → demo** → ui → debug → main.  
+Locale: default **en**, **uk** if `navigator.languages[0]` is Ukrainian.
 
 ## Features
-- Campaign 15 waves/map; Endless; per-map stars/wave/time/endless records; 8 achievements
-- Easy/Normal (Q); 3★ = full HP, no sell, no pause
-- Towers: Arrow/Frost/Sniper (all), Cannon (ground), Flak (air); target modes (T); integrity/repair
-- Seeded variants + **Daily challenge** (date seed + rotating map); `?map=&mode=&diff=&seed=&autostart=1`
-- Results: **Copy text** + **Save PNG** share card (deep link in text)
-- Demo F4 / `?demo=1`; procedural audio (map pools + tension); PWA when served over http(s)
-- Mobile: fullscreen, touch pads, visualViewport, rotate hint
+- Campaign 15 waves/map; Endless; stars/records; 8 achievements; v badge in menu
+- Easy/Normal; 3★ = full HP, no sell, no pause
+- Towers: Arrow/Frost/Sniper/Cannon(g)/Flak(a); target modes (T); integrity (campaign chip-only)
+- Seeded variants + Daily challenge; deep links `?map=&mode=&diff=&seed=&autostart=1`
+- Results: Copy text + PNG; demo F4/`?demo=1`; procedural audio; PWA on http(s)
 
 ## Controls
-Menu: ←→ map · ↑↓ mode · Q difficulty · Variant / Daily · Space start · R reroll seed  
-Game: click · RMB/× cancel · N wave · T target · R sell · V vol · 1-3 speed  
-Results: Copy / PNG · Space menu · Demo: F4 · Debug: F3 · `?debug=1`
+Menu: ←→ map · ↑↓ mode · Q difficulty · Seed/Daily · Space start · R reroll  
+Game: click · N wave · T target · R sell · V vol · 1-3 speed · Results: Copy/PNG
 
 ## Dev
-`node scripts/smoke.js` — syntax + load; maps×4, towers×5, share/deep-link/daily, seed-stable waves, i18n en
+`node scripts/smoke.js` — load + maps×4, share/demo modules, seed-stable waves, volume layout, destroy policy
 
 ## Edit guide (for AI)
 | Area | Files |
 |------|-------|
 | Balance / waves | `js/data/*.js`, `js/maps/<id>.js` |
-| Locale / UI text | `js/i18n.js`, `js/ui.js`, `js/achievements.js` |
-| Share / deep links | `js/game.js` (format/link), `js/ui.js` (results), `js/config.js` |
+| Core loop / combat | `js/game.js` |
+| Demo AI | `js/demo.js` |
+| Share / seeds / deep links | `js/share.js` |
+| Locale / HUD / menu | `js/i18n.js`, `js/ui.js` |
 | Audio | `js/audio.js` |
-| PWA | `manifest.json`, `sw.js`, `index.html` |
-| Graphics | `graphics/*.js` |
+| PWA | `manifest.json`, `sw.js` |
 
 ## Current Intent (2026-07-20)
-Ship loop: git ✓ · share/daily/deep/PWA ✓ · tower siege seeded + campaign chip-only ✓ · volume layout exclusive ✓  
-Next: **publish** (GH Pages / itch) · then content.
+Tech debt slice ✓ (demo/share split, smoke, changelog). **Publish later**. Next: content or polish.
 
 **Update this file** on structure changes. Max **50 lines**.

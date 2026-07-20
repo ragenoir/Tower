@@ -62,7 +62,7 @@ const files = [
   'js/events.js', 'js/maps/pipeline.js', 'js/maps/meadow.js', 'js/maps/canyon.js', 'js/maps/ruins.js', 'js/maps/rift.js',
   'js/maps/validate.js', 'js/maps/index.js', 'js/storage.js', 'js/achievements.js', 'js/audio.js',
   'graphics/state.js', 'graphics/map.js', 'graphics/units.js', 'graphics/fx.js',
-  'js/game.js', 'js/ui.js', 'js/debug.js', 'js/main.js'
+  'js/share.js', 'js/game.js', 'js/demo.js', 'js/ui.js', 'js/debug.js', 'js/main.js'
 ];
 
 let failed = 0;
@@ -146,7 +146,23 @@ const checks = [
     const b = [TD.runRand(), TD.runRand(), TD.runRand()];
     TD._seededRand = null;
     return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
-  }
+  },
+  // All maps validate
+  () => TD.MAP_IDS.every(id => TD.MAPS[id] && TD.MAPS[id].validation && TD.MAPS[id].validation.ok),
+  // Deep-link apply into menu
+  () => {
+    TD.urlMap = 'rift'; TD.urlMode = 'endless'; TD.urlDiff = 'easy'; TD.urlSeed = 'beef1';
+    TD.applyUrlDeepLink();
+    const ok = TD.run.menuMap === 'rift' && TD.run.menuMode === 'endless' &&
+      TD.run.menuDifficulty === 'easy' && TD.run.menuSeed === 'beef1';
+    TD.urlMap = TD.urlMode = TD.urlDiff = TD.urlSeed = null;
+    return ok;
+  },
+  // Demo module extracted
+  () => typeof TD.updateDemo === 'function' && typeof TD.toggleDemo === 'function' &&
+    Array.isArray(TD.DEMO_CYCLE) && TD.DEMO_CYCLE.length === 4,
+  // Share module extracted
+  () => typeof TD.getDailySeed === 'function' && typeof TD.buildDeepLink === 'function'
 ];
 
 for (const [i, fn] of checks.entries()) {

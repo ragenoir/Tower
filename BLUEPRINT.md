@@ -76,17 +76,20 @@ js/
   storage.js
   achievements.js
   audio.js           # procedural music + sfx (often the star)
-  game.js            # core loop, run state
+  share.js           # seeds, deep links, share text/PNG, daily
+  game.js            # core loop, run state, combat
+  demo.js            # attract-mode AI (optional for forks)
   ui.js
   debug.js
   main.js            # input, init, top level
-graphics/            # or graphics.js
+graphics/
   state.js
   map.js
   units.js
   fx.js
 scripts/
   smoke.js           # node smoke test (vm + assertions)
+CHANGELOG.md
 README.md            # ≤50 lines, update on every structural change
 IDEAS.md             # living backlog + reviews + questions (date sections)
 BLUEPRINT.md         # this file (or link to central copy)
@@ -96,7 +99,7 @@ BLUEPRINT.md         # this file (or link to central copy)
 Document it explicitly (see README). Changing load order breaks globals or init assumptions.
 
 **Tower pattern**:
-config → i18n → data → events → maps/* → storage → achievements → audio → graphics → game → ui → debug → main
+config → i18n → data → events → maps/* → storage → achievements → audio → graphics → share → game → demo → ui → debug → main
 
 ---
 
