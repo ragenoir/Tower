@@ -7,3 +7,7 @@
 *~
 .AppleDouble
 .LSOverride
+# Local screenshots dropped into the project folder
+Знімок*.png
+Screenshot*.png
+Screen Shot*.png
