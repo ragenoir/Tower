@@ -429,7 +429,8 @@ You can (and should) evolve this prompt over time and update the copy in BLUEPRI
 
 ## Appendix: Tower-Specific Snapshot (2026-07-20, v1.2.0 published)
 
-- **Repo:** https://github.com/ragenoir/Tower · **Play:** https://ragenoir.github.io/Tower/ (Pages from `main` / root)
+- **Repo:** https://github.com/ragenoir/Tower
+- **Play:** https://ragenoir.itch.io/tower · https://ragenoir.github.io/Tower/
 - 4 maps (meadow, canyon, ruins, rift — air/ground split)
 - 5 towers (Arrow, Frost, Sniper, Cannon ground-only, Flak air-only)
 - 15-wave campaign + Endless; tower siege (seeded; campaign chip-only, endless destroy)

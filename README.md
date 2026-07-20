@@ -2,7 +2,8 @@
 
 Pixel TD — 4 maps (Rift air/ground), 5 towers, seeded variants, Campaign + Endless, share + daily + PWA.
 
-**Repo:** [github.com/ragenoir/Tower](https://github.com/ragenoir/Tower) · **Play (Pages):** [ragenoir.github.io/Tower](https://ragenoir.github.io/Tower/) · demo: [`?demo=1`](https://ragenoir.github.io/Tower/?demo=1)
+**Play:** [itch.io](https://ragenoir.itch.io/tower) · [GitHub Pages](https://ragenoir.github.io/Tower/) · demo [`?demo=1`](https://ragenoir.github.io/Tower/?demo=1)  
+**Repo:** [github.com/ragenoir/Tower](https://github.com/ragenoir/Tower)
 
 ## Layout
 ```
@@ -38,6 +39,6 @@ Game: click · N wave · T target · R sell · V vol · 1-3 speed · Results: Co
 | Audio / PWA | `js/audio.js`, `manifest.json`, `sw.js` |
 
 ## Current Intent (2026-07-20)
-**Published** (GitHub Pages). Next: content (Hard / maps) or polish.
+**Shipped** — itch + GH Pages. Next: content (Hard / map twist) or polish from feedback.
 
 **Update this file** on structure changes. Max **50 lines**.

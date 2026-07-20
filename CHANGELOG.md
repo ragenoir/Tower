@@ -2,10 +2,11 @@
 
 ## 1.2.0 — 2026-07-20 (publish)
 - Public repo: https://github.com/ragenoir/Tower (`origin` → `main`)
-- Play URL: GitHub Pages (`ragenoir.github.io/Tower`) — enable once: Settings → Pages → Deploy from branch `main` / root
+- GitHub Pages: https://ragenoir.github.io/Tower/
+- itch.io: https://ragenoir.itch.io/tower (HTML browser build)
 - Add `.nojekyll` for static Pages hosting
 - Docs sync: README, IDEAS, BLUEPRINT, CHANGELOG for ship status
-- `itch-embed.txt` notes for browser embed / zip upload
+- `itch-embed.txt` notes for browser embed / zip / butler
 
 ## 1.1.2 — 2026-07-20
 - Tech debt: extract `js/demo.js` (attract AI) and `js/share.js` (seeds, deep links, PNG/text share)

@@ -1,8 +1,20 @@
-# itch.io browser embed / upload notes
+# itch.io — live project
 
-1. Zip the project root (exclude .git): all HTML/JS/CSS/PWA assets.
-2. Upload as HTML game on itch.io, set "This file will be played in the browser".
-3. Shared embed URL example (after GH Pages is live):
-   https://ragenoir.github.io/Tower/?demo=1
-4. Challenge deep link:
-   https://ragenoir.github.io/Tower/?map=canyon&mode=campaign&seed=YOURSEED
+Play: https://ragenoir.itch.io/tower
+Pages: https://ragenoir.github.io/Tower/
+Repo:  https://github.com/ragenoir/Tower
+
+## Settings used
+- Kind: HTML · free · played in browser
+- Viewport: 768 × 576 (2× logical 384×288) · fullscreen on
+
+## Re-upload (zip)
+  zip -r tower-td-itch.zip index.html manifest.json sw.js icon-192.png .nojekyll js graphics -x "*.DS_Store"
+  # Ensure index.html is at zip root. Check "This file will be played in the browser".
+
+## Re-upload (butler)
+  butler push /path/to/playable-folder ragenoir/tower:html
+
+## Deep links (Pages)
+  https://ragenoir.github.io/Tower/?demo=1
+  https://ragenoir.github.io/Tower/?map=canyon&mode=campaign&seed=YOURSEED
