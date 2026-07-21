@@ -42,8 +42,28 @@ Object.assign(window.TDG, {
 
   drawParticles(particles) {
     for (const p of particles) {
-      S.ctx.globalAlpha = Math.min(1, p.life / 0.5);
-      px(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size, p.color);
+      const lifeNorm = Math.min(1, p.life / 0.5);
+      S.ctx.globalAlpha = lifeNorm;
+      const s = p.size || 2;
+      const kind = p.kind || 'puff';
+      if (kind === 'spark') {
+        // Streak along velocity for snappier juice
+        const len = Math.min(6, Math.hypot(p.vx || 0, p.vy || 0) * 0.08 + s);
+        const ang = Math.atan2(p.vy || 0, p.vx || 1);
+        S.ctx.save();
+        S.ctx.translate(p.x, p.y);
+        S.ctx.rotate(ang);
+        px(-len * 0.3, -s / 2, len, Math.max(1, s * 0.7), p.color);
+        px(len * 0.4, -0.5, 1, 1, '#fff');
+        S.ctx.restore();
+      } else if (kind === 'soul') {
+        px(p.x - s / 2, p.y - s / 2, s, s, p.color);
+        px(p.x - 1, p.y - s - 1, 2, 2, 'rgba(255,255,255,0.45)');
+      } else {
+        // puff — soft square + bright core
+        px(p.x - s / 2, p.y - s / 2, s, s, p.color);
+        if (s >= 2) px(p.x - 1, p.y - 1, 2, 2, 'rgba(255,255,255,0.25)');
+      }
     }
     S.ctx.globalAlpha = 1;
   },

@@ -34,7 +34,7 @@ Game: click · N wave · T target · R sell · V vol · 1-3 speed
 | Core / portals | `js/game.js` (moveEnemy), `js/maps/index.js` (loadMap resolve) |
 | Demo / share | `js/demo.js`, `js/share.js` |
 
-## Current Intent (2026-07-20)
-Shipped itch + Pages. **v1.3.0 Conflux** map twist. Next: balance feedback or Hard.
+## Current Intent (2026-07-21)
+Shipped. **v1.3.1 visual pack** (juice + towers + map tiles). Next: Hard or feedback-driven polish.
 
 **Update this file** on structure changes. Max **50 lines**.

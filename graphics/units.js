@@ -16,79 +16,135 @@ Object.assign(window.TDG, {
     S.ctx.save();
     S.ctx.translate(x, y + idle);
 
+    // 1px outline “shell” so towers read at itch 2× and against busy maps
+    const shell = (ox, oy, w, h, fill, edge) => {
+      if (edge) px(ox - 1, oy, 1, h, edge);
+      if (edge) px(ox + w, oy, 1, h, edge);
+      px(ox, oy, w, h, fill);
+    };
+
     if (t.type === 'arrow') {
-      // base body + limbs (lv1)
-      px(-5, -2, 10, 8, '#6a4a2a'); px(-4, -6, 8, 5, S.C.arrow);
-      // lv2: reinforced limbs + sight
-      if (lv >= 2) { px(-6, -7, 2, 3, S.C.gold); px(-2, -8, 5, 2, '#4a3a2a'); }
-      // lv3: full frame + extra fletching + gold trim
-      if (lv >= 3) { px(4, -7, 2, 3, S.C.gold); px(-7, -5, 1, 7, '#3a2a1a'); px(5, -8, 3, 2, S.C.gold); }
+      shell(-5, -2, 10, 8, '#6a4a2a', '#3a2818');
+      px(-4, -6, 8, 5, S.C.arrow);
+      px(-3, -5, 6, 3, '#7aa8d0'); // face plate
+      if (lv >= 2) {
+        px(-7, -3, 2, 6, '#5a3a1a'); px(5, -3, 2, 6, '#5a3a1a'); // limbs wider
+        px(-6, -7, 2, 3, S.C.gold); px(-2, -8, 5, 2, '#4a3a2a');
+      }
+      if (lv >= 3) {
+        px(-8, -6, 3, 8, '#4a2a10'); px(5, -6, 3, 8, '#4a2a10');
+        px(4, -8, 3, 3, S.C.gold); px(-7, -8, 3, 2, S.C.gold);
+        px(-1, -9, 3, 2, '#fff8'); // crest
+      }
       S.ctx.rotate(ang);
       px(0 - recoil, -1, 8 + recoil, 2, '#8a6a4a');
       px(6 - recoil, -2, 4, 4, S.C.text);
-      if (flash > 0) px(8 - recoil, -3, 3, 3, 'rgba(255,220,100,0.7)');
-      // light damage: crack lines
+      if (flash > 0) {
+        px(8 - recoil, -3, 4, 4, 'rgba(255,220,100,0.75)');
+        px(10 - recoil, -1, 3, 2, 'rgba(255,255,200,0.55)');
+      }
       if (dmg > 0.3) px(-3, -4, 1, 4, '#222');
       if (dmg > 0.6) px(2, -5, 2, 1, '#222');
     } else if (t.type === 'cannon') {
-      // chassis
-      px(-7, 0, 14, 7, '#5a5a5a'); px(-5, -4, 10, 5, S.C.cannon);
-      if (lv >= 2) { px(-8, 1, 16, 2, '#4a4a4a'); px(-3, -6, 6, 2, '#3a3a3a'); } // reinforced + top plate
-      if (lv >= 3) { px(-9, -1, 3, 3, S.C.gold); px(5, -1, 3, 3, S.C.gold); px(-2, -7, 4, 3, '#2a2a2a'); } // heavy frame + gold
+      shell(-7, 0, 14, 7, '#5a5a5a', '#2a2a2a');
+      px(-5, -4, 10, 5, S.C.cannon);
+      if (lv >= 2) {
+        px(-8, 0, 16, 3, '#4a4a4a');
+        px(-4, -6, 8, 3, '#3a3a3a');
+        px(-6, -5, 2, 2, '#888'); px(4, -5, 2, 2, '#888');
+      }
+      if (lv >= 3) {
+        px(-9, -2, 4, 5, S.C.gold); px(5, -2, 4, 5, S.C.gold);
+        px(-3, -8, 6, 3, '#2a2a2a');
+        px(-1, -9, 2, 2, '#ffaa44'); // fuse glow
+      }
       S.ctx.rotate(ang);
       px(-2 - recoil * 1.5, -2, 10 + recoil, 4, '#3a2a1a');
       px(6 - recoil * 1.5, -3, 5, 6, '#2a1a0a');
       if (flash > 0) {
-        px(10 - recoil, -4, 5, 5, 'rgba(80,60,40,0.6)');
-        px(12 - recoil, -3, 4, 4, 'rgba(255,180,60,0.5)');
+        px(10 - recoil, -4, 6, 6, 'rgba(80,60,40,0.65)');
+        px(12 - recoil, -3, 5, 4, 'rgba(255,180,60,0.55)');
+        px(14 - recoil, -2, 3, 2, 'rgba(255,240,180,0.5)');
       }
-      if (dmg > 0.4) px(-1, 1, 3, 1, '#222'); // barrel dent
+      if (dmg > 0.4) px(-1, 1, 3, 1, '#222');
     } else if (t.type === 'frost') {
       const spin = animTime * 3;
-      px(-5, -3, 10, 9, '#a0d8ef'); px(-3, -5, 6, 4, S.C.frost); px(-4, 2, 8, 3, '#70b8d8');
-      if (lv >= 2) { px(-6, -6, 2, 2, '#fff'); px(4, -6, 2, 2, '#fff'); px(-1, -1, 3, 3, '#c0f0ff'); }
-      if (lv >= 3) { px(-1, -7, 2, 2, '#fff'); px(-7, -4, 2, 5, '#9ad0f0'); px(5, -3, 2, 4, '#9ad0f0'); } // crystal growth
+      shell(-5, -3, 10, 9, '#a0d8ef', '#5088a8');
+      px(-3, -5, 6, 4, S.C.frost); px(-4, 2, 8, 3, '#70b8d8');
+      if (lv >= 2) {
+        px(-7, -5, 3, 4, '#c0f0ff'); px(4, -5, 3, 4, '#c0f0ff');
+        px(-1, -2, 3, 3, '#e8ffff');
+      }
+      if (lv >= 3) {
+        px(-1, -9, 3, 4, '#fff');
+        px(-8, -6, 3, 7, '#9ad0f0'); px(5, -5, 3, 6, '#9ad0f0');
+        px(-2, -10, 4, 2, 'rgba(200,240,255,0.7)');
+      }
       S.ctx.rotate(ang);
       px(2 - recoil, -1, 6, 2, '#c0e8ff');
       if (flash > 0) {
-        px(7, -2, 2, 2, '#fff');
-        px(9, 0, 2, 2, '#b0e8ff');
+        px(7, -3, 3, 3, '#fff');
+        px(9, -1, 3, 3, '#b0e8ff');
+        px(11, 0, 2, 2, 'rgba(255,255,255,0.6)');
       }
       const orb = Math.sin(spin) * 2;
-      px(-2 + orb, -8, 2, 2, 'rgba(200,240,255,0.6)');
-      if (dmg > 0.35) { px(-4, -4, 1, 3, '#4a6a88'); px(1, 0, 2, 1, '#4a6a88'); } // frost cracks
+      px(-2 + orb, -8, 2, 2, 'rgba(200,240,255,0.7)');
+      if (lv >= 2) px(1 - orb, -7, 2, 2, 'rgba(180,230,255,0.5)');
+      if (dmg > 0.35) { px(-4, -4, 1, 3, '#4a6a88'); px(1, 0, 2, 1, '#4a6a88'); }
     } else if (t.type === 'flak') {
-      px(-6, 0, 12, 6, '#5a5a48'); px(-4, -4, 8, 5, S.C.flak);
-      if (lv >= 2) { px(-7, -5, 3, 3, S.C.gold); px(-2, -6, 4, 2, '#3a3a28'); } // dual mount
-      if (lv >= 3) { px(3, -6, 3, 3, S.C.gold); px(-5, -7, 10, 1, '#6a6a58'); px(-1, 3, 2, 2, '#c9a227'); } // radar + extra barrel
+      shell(-6, 0, 12, 6, '#5a5a48', '#2a2a20');
+      px(-4, -4, 8, 5, S.C.flak);
+      if (lv >= 2) {
+        px(-8, -4, 4, 4, S.C.gold); px(4, -4, 4, 4, S.C.gold);
+        px(-2, -7, 4, 3, '#3a3a28');
+      }
+      if (lv >= 3) {
+        px(-6, -8, 12, 2, '#6a6a58'); // radar dish
+        px(-1, -10, 3, 3, '#c9a227');
+        px(-7, 2, 3, 3, '#888'); px(4, 2, 3, 3, '#888');
+      }
       S.ctx.rotate(ang);
       px(-1 - recoil, -2, 9 + recoil, 3, '#4a4a38');
       px(7 - recoil, -3, 4, 5, '#3a3a28');
+      if (lv >= 2) px(-1 - recoil, 1, 7 + recoil, 2, '#3a3a28'); // second barrel
       if (flash > 0) {
-        px(10 - recoil, -4, 4, 4, 'rgba(255,220,80,0.6)');
-        px(12 - recoil, -2, 2, 2, 'rgba(255,255,200,0.5)');
+        px(10 - recoil, -4, 5, 5, 'rgba(255,220,80,0.65)');
+        px(12 - recoil, -2, 3, 3, 'rgba(255,255,200,0.55)');
       }
       if (dmg > 0.5) px(-2, -1, 2, 2, '#222');
     } else {
-      // sniper
-      px(-4, -2, 8, 12, S.C.sniper); px(-3, -10, 6, 9, '#1a1a3a');
-      if (lv >= 2) { px(-5, -8, 10, 2, '#3a3a5a'); px(-6, 1, 3, 2, '#2a2a3a'); } // scope + bipod
-      if (lv >= 3) { px(-2, -12, 4, 3, S.C.gold); px(-7, -11, 2, 7, '#111'); px(3, -2, 2, 2, S.C.gold); } // long scope + gold
+      // sniper — tall silhouette, long barrel reads as sniper
+      shell(-4, -2, 8, 12, S.C.sniper, '#0a0a18');
+      px(-3, -10, 6, 9, '#1a1a3a');
+      if (lv >= 2) {
+        px(-6, -8, 12, 3, '#3a3a5a'); // wide scope
+        px(-7, 2, 3, 3, '#2a2a3a'); px(4, 2, 3, 3, '#2a2a3a');
+      }
+      if (lv >= 3) {
+        px(-2, -14, 5, 5, S.C.gold);
+        px(-8, -12, 2, 10, '#111');
+        px(4, -4, 3, 3, S.C.gold);
+        px(-1, -15, 2, 2, '#fff8');
+      }
       S.ctx.rotate(ang);
       px(-1 - recoil * 2, -1, 12 + recoil * 2, 2, '#4a4a6a');
       px(9 - recoil * 2, -2, 4, 4, '#2a2a4a');
       if (flash > 0) {
-        S.ctx.strokeStyle = 'rgba(255,255,200,0.8)'; S.ctx.lineWidth = 1;
+        S.ctx.strokeStyle = 'rgba(255,255,200,0.9)'; S.ctx.lineWidth = 1;
         S.ctx.beginPath(); S.ctx.moveTo(11 - recoil * 2, -1);
-        S.ctx.lineTo(16 - recoil * 2, -1); S.ctx.stroke();
+        S.ctx.lineTo(18 - recoil * 2, -1); S.ctx.stroke();
+        px(14 - recoil * 2, -2, 3, 3, 'rgba(255,255,220,0.5)');
       }
       if (dmg > 0.3) px(-2, 2, 1, 4, '#111');
     }
     S.ctx.restore();
-    S.ctx.fillStyle = S.C.text;
+    // Level pip — clearer badge
+    const badgeW = lv >= 3 ? 9 : 7;
+    px(x - badgeW / 2, y + 5, badgeW, 6, 'rgba(20,20,32,0.75)');
+    S.ctx.fillStyle = lv >= 3 ? S.C.gold : S.C.text;
     S.ctx.font = 'bold 6px monospace';
     S.ctx.textAlign = 'center';
-    S.ctx.fillText('' + lv, x, y + 9);
+    S.ctx.fillText('' + lv, x, y + 10);
 
     // subtle damage smoke on heavily damaged towers (even before full system)
     if (dmg > 0.65 && Math.sin(animTime * 4 + x) > 0.6) {
@@ -242,36 +298,51 @@ Object.assign(window.TDG, {
       S.ctx.beginPath(); S.ctx.arc(bx, by, e.size + 3, 0, Math.PI * 2); S.ctx.stroke();
     }
     if (e.type === 'grunt') {
+      // Stocky square body — slow silhouette
+      px(bx - 6, by - 5, 12, 11, '#3a1810');
       px(bx - 5, by - 5, 10, 10, e.color);
       px(bx - 3, by - 3, 6, 6, '#c04030');
       px(bx - 2, by - 2, 2, 2, '#ffe0a0'); px(bx + 1, by - 2, 2, 2, '#ffe0a0');
-      px(bx - 4, by + 3 + legL, 2, 3, '#a03020');
-      px(bx + 2, by + 3 + legR, 2, 3, '#a03020');
+      px(bx - 1, by + 1, 2, 2, '#8a2018'); // mouth
+      px(bx - 4, by + 3 + legL, 3, 3, '#a03020');
+      px(bx + 1, by + 3 + legR, 3, 3, '#a03020');
     } else if (e.type === 'flyer') {
       const flap = Math.sin(animTime * 12 + e.id) * 2;
-      px(x - 5, y - 3 + bob + flap * 0.3, 10, 4, 'rgba(120,180,255,0.35)');
+      px(x - 5, y - 3 + bob + flap * 0.3, 10, 4, 'rgba(120,180,255,0.4)');
       px(x - 4, y - 2 + bob, 8, 6, e.color);
-      px(x - 6, y - 4 + bob - flap, 4, 3, '#a0d0ff');
-      px(x + 2, y - 4 + bob + flap, 4, 3, '#a0d0ff');
+      px(x - 3, y - 1 + bob, 6, 3, '#9ad0ff');
+      px(x - 7, y - 4 + bob - flap, 5, 3, '#a0d0ff');
+      px(x + 2, y - 4 + bob + flap, 5, 3, '#a0d0ff');
       px(x - 1, y + bob, 2, 2, '#fff');
+      px(x - 2, y + 3 + bob, 4, 2, 'rgba(160,200,255,0.35)'); // belly glow
     } else if (e.type === 'runner') {
+      // Tall thin + motion streak
+      px(bx - 4, by - 7, 8, 12, '#5a2018');
       px(bx - 3, by - 6, 6, 10, e.color);
       px(bx - 2, by - 4, 4, 3, '#ffc0a0');
+      px(bx - 1, by - 3, 1, 1, '#fff'); // eye
       px(bx - 4, by + 1 + legL, 2, 5, e.color);
       px(bx + 2, by + 1 + legR, 2, 5, e.color);
-      if (walk % 2 === 0) px(bx + 3, by - 2, 2, 2, 'rgba(255,255,255,0.3)');
+      if (walk % 2 === 0) px(bx + 3, by - 2, 3, 2, 'rgba(255,255,255,0.35)');
+      if (e.speed > 50) {
+        px(bx - Math.cos(face) * 6, by, 3, 2, 'rgba(255,200,160,0.2)');
+      }
     } else if (e.type === 'armored') {
+      px(bx - 7, by - 6, 14, 12, '#3a4048');
       px(bx - 6, by - 5, 12, 10, e.color);
       px(bx - 5, by - 4, 10, 8, '#9aa8b8');
       px(bx - 4, by - 3, 3, 3, '#c0ccd8');
       px(bx + 1, by - 3, 3, 3, '#c0ccd8');
+      px(bx - 2, by - 6, 4, 2, '#d0d8e0'); // helm ridge
       px(bx - 5, by + 2 + legL, 2, 4, '#5a6a78');
       px(bx + 3, by + 2 + legR, 2, 4, '#5a6a78');
     } else if (e.type === 'tank') {
       const tread = Math.floor(animTime * 8) % 2;
+      px(bx - 9, by - 5, 18, 11, '#2a1008');
       px(bx - 8, by - 5, 16, 10, e.color);
       px(bx - 6, by - 7, 12, 4, '#5a2a1a');
-      px(bx - 2, by - 3, 4, 4, '#3a1a0a');
+      px(bx - 2, by - 3, 5, 4, '#3a1a0a');
+      px(bx + 1, by - 4, 6, 2, '#4a2a18'); // barrel stub
       px(bx - 9, by + 1 + tread, 3, 3, '#4a2a1a');
       px(bx + 6, by + 1 + (1 - tread), 3, 3, '#4a2a1a');
       px(bx - 8, by + 4, 16, 2, '#3a1a0a');

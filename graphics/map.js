@@ -8,8 +8,13 @@ Object.assign(window.TDG, {
     const p = pal();
     const base = p.grass[(col + row) % 3];
     px(x, y, S.TILE, S.TILE, base);
+    // Micro variation — denser but still soft
     if ((col * 3 + row * 7) % 11 === 0) px(x + 2, y + 2, 1, 1, p.grass[(col + row + 1) % 3]);
     if ((col + row) % 5 === 0) px(x + 10, y + 11, 2, 1, p.grass[(col + row + 2) % 3]);
+    if ((col * 5 + row * 3) % 13 === 0) px(x + 7, y + 4, 1, 1, p.flower);
+    if ((col + row * 2) % 17 === 0) px(x + 3, y + 9, 2, 1, p.grass[(col + 2) % 3]);
+    // Subtle top-left highlight for “light from NW”
+    if ((col + row) % 4 === 0) px(x + 1, y + 1, 3, 1, 'rgba(255,255,255,0.04)');
   },
 
   drawRoadTile(x, y, col, row, rows) {
@@ -23,16 +28,21 @@ Object.assign(window.TDG, {
     if (h) {
       px(x + 3, y + 7, S.TILE - 6, 2, p.roadHi);
       if ((col + row) % 3 === 0) px(x + 6, y + 7, 2, 2, 'rgba(90,70,30,0.35)');
+      // dashed center marks
+      if (col % 2 === 0) px(x + 6, y + 7, 3, 1, 'rgba(255,220,140,0.12)');
     } else if (v) {
       px(x + 7, y + 3, 2, S.TILE - 6, p.roadHi);
       if ((col + row) % 3 === 0) px(x + 7, y + 6, 2, 2, 'rgba(90,70,30,0.35)');
+      if (row % 2 === 0) px(x + 7, y + 6, 1, 3, 'rgba(255,220,140,0.12)');
     } else {
       px(x + 5, y + 5, S.TILE - 10, S.TILE - 10, p.roadHi);
+      px(x + 6, y + 6, 2, 2, 'rgba(255,220,140,0.1)');
     }
-    if (!ir(col - 1, row)) px(x, y + 2, 2, S.TILE - 4, p.roadEdge);
-    if (!ir(col + 1, row)) px(x + S.TILE - 2, y + 2, 2, S.TILE - 4, p.roadEdge);
-    if (!ir(col, row - 1)) px(x + 2, y, S.TILE - 4, 2, p.roadEdge);
-    if (!ir(col, row + 1)) px(x + 2, y + S.TILE - 2, S.TILE - 4, 2, p.roadEdge);
+    // Harder edge against grass for path readability
+    if (!ir(col - 1, row)) { px(x, y + 2, 2, S.TILE - 4, p.roadEdge); px(x + 1, y + 3, 1, S.TILE - 6, 'rgba(0,0,0,0.15)'); }
+    if (!ir(col + 1, row)) { px(x + S.TILE - 2, y + 2, 2, S.TILE - 4, p.roadEdge); px(x + S.TILE - 2, y + 3, 1, S.TILE - 6, 'rgba(0,0,0,0.15)'); }
+    if (!ir(col, row - 1)) { px(x + 2, y, S.TILE - 4, 2, p.roadEdge); px(x + 3, y + 1, S.TILE - 6, 1, 'rgba(0,0,0,0.12)'); }
+    if (!ir(col, row + 1)) { px(x + 2, y + S.TILE - 2, S.TILE - 4, 2, p.roadEdge); }
   },
 
   drawWaterTile(x, y, col, row, pulse) {
@@ -65,7 +75,11 @@ Object.assign(window.TDG, {
     px(x + 3, y + 8, 10, 6, p.bush);
     px(x + 5, y + 5, 6, 5, p.bush);
     px(x + 6, y + 3, 4, 3, '#4a9a4a');
+    px(x + 7, y + 4, 2, 2, 'rgba(255,255,255,0.08)'); // leaf glint
     if (S.theme === 'canyon') px(x + 7, y + 4, 2, 2, p.flower);
+    if (S.theme === 'meadow' && (col + row) % 3 === 0) px(x + 4, y + 9, 2, 2, p.flower);
+    if (S.theme === 'conflux') px(x + 8, y + 6, 2, 2, p.flower);
+    if (S.theme === 'ruins') px(x + 5, y + 10, 4, 2, p.rock);
   },
 
   drawSpawnPortal(x, y, pulse) {

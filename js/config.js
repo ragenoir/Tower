@@ -77,5 +77,5 @@ TD.urlMode = __params.get('mode') || null;
 TD.urlDiff = __params.get('diff') || null;
 TD.urlSeed = __params.get('seed') || null;
 TD.urlAutostart = __params.has('autostart') || __params.get('start') === '1';
-TD.VERSION = '1.3.0';
+TD.VERSION = '1.3.1';
 })();

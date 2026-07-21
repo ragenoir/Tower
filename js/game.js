@@ -333,16 +333,55 @@ TD.enemyPos = function enemyPos(e) {
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t + yOff];
 }
 
+/** Soft particle budget so late waves stay readable/perf-safe. */
+TD.pushParticle = function pushParticle(p) {
+  const list = r().particles;
+  if (list.length >= 160) list.splice(0, list.length - 140);
+  list.push(p);
+};
+
+/** Cosmetic burst helper (juice). kind: 'spark' | 'puff' | 'soul' | 'ring' */
+TD.spawnFxBurst = function spawnFxBurst(x, y, opts = {}) {
+  const n = opts.count || 6;
+  const color = opts.color || TD.C.gold;
+  const kind = opts.kind || 'spark';
+  const spd = opts.speed || 36;
+  for (let i = 0; i < n; i++) {
+    const ang = (i / n) * Math.PI * 2 + Math.random() * 0.4;
+    const s = spd * (0.55 + Math.random() * 0.6);
+    TD.pushParticle({
+      x, y,
+      vx: Math.cos(ang) * s,
+      vy: Math.sin(ang) * s - (opts.lift || 12),
+      life: opts.life || (0.28 + Math.random() * 0.28),
+      color,
+      size: opts.size || (1.5 + Math.random() * 2),
+      kind
+    });
+  }
+};
+
 TD.damageEnemy = function damageEnemy(e, dmg, towerType) {
   const pos = TD.enemyPos(e);
   if (e.shieldTimer > 0) {
     r().dmgNumbers.push({ x: pos[0], y: pos[1] - 10, text: 'BLOCK', life: 0.45 });
+    TD.spawnFxBurst(pos[0], pos[1], { count: 4, color: '#88ccff', kind: 'spark', speed: 28, size: 1.5, life: 0.22 });
     return;
   }
   const dealt = Math.max(1, Math.round(dmg * (1 - (e.armor || 0))));
   e.hp -= dealt;
   const dmgText = e.armor > 0 && dealt < dmg ? '-' + dealt : '-' + Math.round(dmg);
   r().dmgNumbers.push({ x: pos[0], y: pos[1] - 10, text: dmgText, life: 0.6 });
+  // Hit spark (throttled by size)
+  const hitCol = towerType === 'frost' ? '#b0e8ff'
+    : towerType === 'cannon' ? '#ffaa55'
+    : towerType === 'sniper' ? '#ffe8a0'
+    : towerType === 'flak' ? '#ffe060'
+    : '#ffcc88';
+  TD.spawnFxBurst(pos[0], pos[1] - 2, {
+    count: towerType === 'cannon' ? 5 : 3,
+    color: hitCol, kind: 'spark', speed: 22, size: 1.2, lift: 8, life: 0.18
+  });
   if (towerType === 'frost') {
     e.slowTimer = TD.TOWER_TYPES.frost.slowDur;
     e.slowFactor = 1 - TD.TOWER_TYPES.frost.slow;
@@ -376,31 +415,43 @@ TD.killEnemy = function killEnemy(e) {
     TD.bus.emit('sfx', 'combo');
   }
 
-  const burst = e.type === 'boss' ? 14 : 7;
   if (e.type === 'boss') {
-    r().hitStop = 0.06;
-    r().shakeTimer = 0.35;
+    r().hitStop = 0.08;
+    r().shakeTimer = 0.4;
     if (r().runStats) r().runStats.bossKills++;
     TD.bus.emit('sfx', { name: 'bossKill', x: pos[0], y: pos[1] });
   } else if (!e.isMinion) {
     TD.bus.emit('sfx', { name: 'kill', x: pos[0], y: pos[1], type: e.type });
   }
-  for (let i = 0; i < burst; i++) {
-    const ang = Math.random() * Math.PI * 2;
-    const spd = e.type === 'boss' ? 60 : 40;
-    r().particles.push({
-      x: pos[0], y: pos[1], vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd - 25,
-      life: 0.4 + Math.random() * 0.4, color: e.color, size: 2 + Math.random() * 3
-    });
-  }
-  const souls = e.type === 'boss' ? 8 : 4;
+  // Layered kill juice: core burst + sparks + rising souls + gold flecks on combo
+  const isBoss = e.type === 'boss';
+  TD.spawnFxBurst(pos[0], pos[1], {
+    count: isBoss ? 16 : e.type === 'tank' ? 10 : 7,
+    color: e.color, kind: 'puff', speed: isBoss ? 58 : 42, lift: 20, size: isBoss ? 3 : 2.2
+  });
+  TD.spawnFxBurst(pos[0], pos[1], {
+    count: isBoss ? 12 : 6,
+    color: '#ffe8a0', kind: 'spark', speed: isBoss ? 70 : 48, lift: 8, size: 1.4, life: 0.32
+  });
+  const souls = isBoss ? 10 : 4;
   for (let i = 0; i < souls; i++) {
-    r().particles.push({
+    TD.pushParticle({
       x: pos[0] + (Math.random() - 0.5) * 8, y: pos[1],
       vx: (Math.random() - 0.5) * 18, vy: -35 - Math.random() * 30,
       life: 0.55 + Math.random() * 0.35,
-      color: e.type === 'boss' ? TD.C.gold : 'rgba(255,255,255,0.7)',
-      size: e.type === 'boss' ? 3 : 2
+      color: isBoss ? TD.C.gold : 'rgba(255,255,255,0.75)',
+      size: isBoss ? 3 : 2,
+      kind: 'soul'
+    });
+  }
+  if (isBoss) {
+    TD.spawnFxBurst(pos[0], pos[1], {
+      count: 8, color: TD.C.gold, kind: 'spark', speed: 40, lift: 25, size: 2.5, life: 0.5
+    });
+  }
+  if (r().runStats.combo >= 6) {
+    TD.spawnFxBurst(pos[0], pos[1] - 6, {
+      count: 4, color: TD.C.gold, kind: 'spark', speed: 30, lift: 18, size: 1.5
     });
   }
 }
@@ -647,6 +698,19 @@ TD.fireTower = function fireTower(t, target) {
   const sfx = { arrow: 1, flak: 1, cannon: 1, frost: 1, sniper: 1 }[t.type];
   if (sfx) TD.bus.emit('sfx', { name: t.type, x: t.slot.x, y: t.slot.y });
 
+  // Muzzle flash particles along barrel direction
+  const mx = t.slot.x + Math.cos(t.angle) * 8;
+  const my = t.slot.y + Math.sin(t.angle) * 8;
+  const muzzleCol = t.type === 'frost' ? '#c0f0ff'
+    : t.type === 'cannon' ? '#ff9944'
+    : t.type === 'sniper' ? '#fff0b0'
+    : t.type === 'flak' ? '#ffe060'
+    : '#ffdd88';
+  TD.spawnFxBurst(mx, my, {
+    count: t.type === 'cannon' ? 5 : t.type === 'sniper' ? 3 : 2,
+    color: muzzleCol, kind: 'spark', speed: 18, lift: 2, size: 1.3, life: 0.14
+  });
+
   // Rare reflect (seeded — affects damage dealt)
   if (TD.TOWER_DAMAGE_ENABLED && TD.TOWER_DAMAGE_CHANCE_MULT > 0 &&
       TD.runRand() < 0.015 * TD.TOWER_DAMAGE_CHANCE_MULT) {
@@ -746,10 +810,8 @@ TD.updateProjectiles = function updateProjectiles(dt) {
           const ep = TD.enemyPos(e);
           if (Math.hypot(ep[0] - p.x, ep[1] - p.y) <= aoeR) TD.damageEnemy(e, p.dmg, 'cannon');
         }
-        for (let i = 0; i < 5; i++) {
-          const ang = Math.random() * Math.PI * 2;
-          r().particles.push({ x: p.x, y: p.y, vx: Math.cos(ang) * 30, vy: Math.sin(ang) * 30, life: 0.3, color: TD.C.cannon, size: 3 });
-        }
+        TD.spawnFxBurst(p.x, p.y, { count: 8, color: TD.C.cannon, kind: 'puff', speed: 36, lift: 6, size: 2.5 });
+        TD.spawnFxBurst(p.x, p.y, { count: 6, color: '#ffaa55', kind: 'spark', speed: 50, lift: 4, size: 1.5, life: 0.25 });
         TD.bus.emit('sfx', { name: 'hit', x: p.x, y: p.y, type: 'cannon' });
       } else if (p.target && p.target.alive) {
         TD.damageEnemy(p.target, p.dmg, p.type);

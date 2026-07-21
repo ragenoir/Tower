@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.1 — 2026-07-21
+- Visual juice: layered kill bursts, hit sparks, muzzle flash, spark/soul particle kinds
+- Tower identity: stronger L2/L3 silhouettes, outline shell, level badge
+- Enemy silhouettes: clearer grunt/runner/flyer/armored/tank
+- Map atmosphere: denser grass flecks, road center marks + edge contrast, theme bush accents
+- Soft particle budget (~160) for late-wave stability
+
 ## 1.3.0 — 2026-07-20
 - **New map: Conflux** — portal warp twist (seeded chance; bosses never warp; runners bias high)
 - Purple arcane theme, portal gate visuals + WARP! banner, dedicated wave set
