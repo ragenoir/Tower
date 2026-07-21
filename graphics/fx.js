@@ -42,12 +42,12 @@ Object.assign(window.TDG, {
 
   drawParticles(particles) {
     for (const p of particles) {
+      if (p.delay != null && p.delay > 0) continue;
       const lifeNorm = Math.min(1, p.life / 0.5);
       S.ctx.globalAlpha = lifeNorm;
       const s = p.size || 2;
       const kind = p.kind || 'puff';
       if (kind === 'spark') {
-        // Streak along velocity for snappier juice
         const len = Math.min(6, Math.hypot(p.vx || 0, p.vy || 0) * 0.08 + s);
         const ang = Math.atan2(p.vy || 0, p.vx || 1);
         S.ctx.save();
@@ -56,11 +56,16 @@ Object.assign(window.TDG, {
         px(-len * 0.3, -s / 2, len, Math.max(1, s * 0.7), p.color);
         px(len * 0.4, -0.5, 1, 1, '#fff');
         S.ctx.restore();
+      } else if (kind === 'fw') {
+        // Firework star: plus-shape that shrinks with life
+        const fs = Math.max(1, s * (0.6 + lifeNorm * 0.6));
+        px(p.x - fs / 2, p.y - 0.5, fs, 1, p.color);
+        px(p.x - 0.5, p.y - fs / 2, 1, fs, p.color);
+        if (lifeNorm > 0.5) px(p.x - 1, p.y - 1, 2, 2, '#fff');
       } else if (kind === 'soul') {
         px(p.x - s / 2, p.y - s / 2, s, s, p.color);
         px(p.x - 1, p.y - s - 1, 2, 2, 'rgba(255,255,255,0.45)');
       } else {
-        // puff — soft square + bright core
         px(p.x - s / 2, p.y - s / 2, s, s, p.color);
         if (s >= 2) px(p.x - 1, p.y - 1, 2, 2, 'rgba(255,255,255,0.25)');
       }
@@ -93,9 +98,52 @@ Object.assign(window.TDG, {
 
   drawComboBanner(display) {
     if (!display || display.life <= 0) return;
-    S.ctx.globalAlpha = Math.min(1, display.life);
-    S.ctx.fillStyle = S.C.gold; S.ctx.font = 'bold 10px monospace'; S.ctx.textAlign = 'center';
-    S.ctx.fillText(display.text, 192, 28);
+    const maxL = display.maxLife || 1.2;
+    const t = 1 - Math.min(1, display.life / maxL); // 0..1 age
+    // Pop in then settle
+    const pop = t < 0.15 ? 1 + (0.15 - t) * 2.2 : 1;
+    const alpha = Math.min(1, display.life * 1.4);
+    const tier = display.tier || 1;
+    const cx = 192;
+    const cy = 30;
+    S.ctx.save();
+    S.ctx.globalAlpha = alpha;
+    // Expanding ring flash on birth
+    if (t < 0.35) {
+      const ringA = (1 - t / 0.35) * 0.55;
+      S.ctx.globalAlpha = alpha * ringA;
+      S.ctx.strokeStyle = tier >= 3 ? '#ff88cc' : S.C.gold;
+      S.ctx.lineWidth = 1 + Math.min(2, tier);
+      S.ctx.beginPath();
+      S.ctx.arc(cx, cy, 12 + t * (40 + tier * 10), 0, Math.PI * 2);
+      S.ctx.stroke();
+      if (tier >= 2) {
+        S.ctx.beginPath();
+        S.ctx.arc(cx, cy, 6 + t * (28 + tier * 8), 0, Math.PI * 2);
+        S.ctx.stroke();
+      }
+    }
+    S.ctx.globalAlpha = alpha;
+    const fontSize = Math.round((tier >= 3 ? 14 : tier >= 2 ? 12 : 10) * pop);
+    S.ctx.font = 'bold ' + fontSize + 'px monospace';
+    S.ctx.textAlign = 'center';
+    // outline
+    S.ctx.fillStyle = '#000';
+    const tx = display.text || '';
+    S.ctx.fillText(tx, cx + 1, cy);
+    S.ctx.fillText(tx, cx - 1, cy);
+    S.ctx.fillText(tx, cx, cy + 1);
+    S.ctx.fillText(tx, cx, cy - 1);
+    S.ctx.fillStyle = tier >= 4 ? '#ff66aa' : tier >= 3 ? '#ffcc66' : S.C.gold;
+    S.ctx.fillText(tx, cx, cy);
+    // small star pips for tier
+    if (tier >= 2) {
+      S.ctx.font = 'bold 8px monospace';
+      S.ctx.fillStyle = S.C.gold;
+      const stars = '★'.repeat(Math.min(4, tier));
+      S.ctx.fillText(stars, cx, cy + 12);
+    }
+    S.ctx.restore();
     S.ctx.globalAlpha = 1;
   },
 

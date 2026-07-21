@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2 — 2026-07-21
+- Combo fireworks: multi-shell staggered bursts (tier x3/x6/x9/x12+), gold rain, screen punch
+- New particle kind `fw` + delay/drag/grav for firework trajectories
+- Combo banner pop + expanding rings + tier stars; boss kills trigger mini fireworks
+
 ## 1.3.1 — 2026-07-21
 - Visual juice: layered kill bursts, hit sparks, muzzle flash, spark/soul particle kinds
 - Tower identity: stronger L2/L3 silhouettes, outline shell, level badge

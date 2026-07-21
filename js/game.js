@@ -340,7 +340,7 @@ TD.pushParticle = function pushParticle(p) {
   list.push(p);
 };
 
-/** Cosmetic burst helper (juice). kind: 'spark' | 'puff' | 'soul' | 'ring' */
+/** Cosmetic burst helper (juice). kind: 'spark' | 'puff' | 'soul' | 'fw' */
 TD.spawnFxBurst = function spawnFxBurst(x, y, opts = {}) {
   const n = opts.count || 6;
   const color = opts.color || TD.C.gold;
@@ -356,8 +356,92 @@ TD.spawnFxBurst = function spawnFxBurst(x, y, opts = {}) {
       life: opts.life || (0.28 + Math.random() * 0.28),
       color,
       size: opts.size || (1.5 + Math.random() * 2),
-      kind
+      kind,
+      delay: opts.delay || 0,
+      grav: opts.grav,
+      drag: opts.drag
     });
+  }
+};
+
+/**
+ * Combo fireworks — multi-shell, staggered, scales with combo tier.
+ * Tiers: x3, x6, x9, x12+ (also every 3 after).
+ */
+TD.spawnComboFireworks = function spawnComboFireworks(x, y, combo) {
+  const tier = Math.min(4, Math.floor(combo / 3)); // 1..4
+  const palette = ['#ffdd66', '#ff8844', '#ff66aa', '#88ccff', '#a0ff88', '#ffffff', '#c49cff'];
+  // Rising “shells” that hang then bloom (delay + low gravity)
+  const shells = tier + 1;
+  for (let s = 0; s < shells; s++) {
+    const ox = x + (Math.random() - 0.5) * (10 + tier * 6);
+    const oy = y - 4 - s * 3;
+    const riseDelay = s * 0.05;
+    // trail of rising ember
+    for (let t = 0; t < 3; t++) {
+      TD.pushParticle({
+        x: ox, y: oy,
+        vx: (Math.random() - 0.5) * 8,
+        vy: -50 - Math.random() * 20 - tier * 4,
+        life: 0.25 + t * 0.05,
+        color: palette[s % palette.length],
+        size: 2,
+        kind: 'spark',
+        delay: riseDelay + t * 0.02,
+        grav: 40,
+        drag: 0.5
+      });
+    }
+    // main bloom
+    const bloomDelay = riseDelay + 0.12 + s * 0.04;
+    const cols = tier >= 3 ? 3 : 2;
+    for (let c = 0; c < cols; c++) {
+      TD.spawnFxBurst(ox, oy - 18 - s * 6, {
+        count: 8 + tier * 3,
+        color: palette[(s + c * 2) % palette.length],
+        kind: 'fw',
+        speed: 28 + tier * 10 + c * 8,
+        lift: 4,
+        size: 1.5 + tier * 0.3,
+        life: 0.35 + tier * 0.08,
+        delay: bloomDelay + c * 0.03,
+        grav: 25,
+        drag: 1.2
+      });
+    }
+    // white core sparkles
+    TD.spawnFxBurst(ox, oy - 18 - s * 6, {
+      count: 4 + tier,
+      color: '#ffffff',
+      kind: 'spark',
+      speed: 20 + tier * 6,
+      lift: 2,
+      size: 1.2,
+      life: 0.28,
+      delay: bloomDelay,
+      grav: 15,
+      drag: 0.8
+    });
+  }
+  // Screen punch scales with tier
+  r().shakeTimer = Math.max(r().shakeTimer || 0, 0.08 + tier * 0.04);
+  if (tier >= 3) r().hitStop = Math.max(r().hitStop || 0, 0.04);
+  // Gold rain on big combos
+  if (tier >= 2) {
+    for (let i = 0; i < 4 + tier * 2; i++) {
+      TD.pushParticle({
+        x: x + (Math.random() - 0.5) * 40,
+        y: y - 20 - Math.random() * 20,
+        vx: (Math.random() - 0.5) * 20,
+        vy: -10 - Math.random() * 25,
+        life: 0.5 + Math.random() * 0.3,
+        color: TD.C.gold,
+        size: 2,
+        kind: 'soul',
+        delay: 0.08 + Math.random() * 0.12,
+        grav: 80
+      });
+    }
   }
 };
 
@@ -408,11 +492,23 @@ TD.killEnemy = function killEnemy(e) {
   else r().runStats.combo = 1;
   r().runStats.comboTimer = 2;
   r().runStats.maxCombo = Math.max(r().runStats.maxCombo, r().runStats.combo);
-  if (r().runStats.combo >= 3 && r().runStats.combo % 3 === 0) {
-    const bonus = Math.floor(r().runStats.combo / 3);
+  const combo = r().runStats.combo;
+  const milestone = combo >= 3 && combo % 3 === 0;
+  if (milestone) {
+    const bonus = Math.floor(combo / 3);
     r().gold += bonus;
-    r().comboDisplay = { text: TD.t('game.combo', { combo: r().runStats.combo, bonus }), life: 1.2 };
+    const tier = Math.min(4, Math.floor(combo / 3));
+    r().comboDisplay = {
+      text: TD.t('game.combo', { combo, bonus }),
+      life: 1.1 + tier * 0.15,
+      maxLife: 1.1 + tier * 0.15,
+      combo,
+      tier,
+      x: pos[0],
+      y: pos[1]
+    };
     TD.bus.emit('sfx', 'combo');
+    TD.spawnComboFireworks(pos[0], pos[1], combo);
   }
 
   if (e.type === 'boss') {
@@ -423,7 +519,7 @@ TD.killEnemy = function killEnemy(e) {
   } else if (!e.isMinion) {
     TD.bus.emit('sfx', { name: 'kill', x: pos[0], y: pos[1], type: e.type });
   }
-  // Layered kill juice: core burst + sparks + rising souls + gold flecks on combo
+  // Layered kill juice
   const isBoss = e.type === 'boss';
   TD.spawnFxBurst(pos[0], pos[1], {
     count: isBoss ? 16 : e.type === 'tank' ? 10 : 7,
@@ -448,10 +544,12 @@ TD.killEnemy = function killEnemy(e) {
     TD.spawnFxBurst(pos[0], pos[1], {
       count: 8, color: TD.C.gold, kind: 'spark', speed: 40, lift: 25, size: 2.5, life: 0.5
     });
-  }
-  if (r().runStats.combo >= 6) {
-    TD.spawnFxBurst(pos[0], pos[1] - 6, {
-      count: 4, color: TD.C.gold, kind: 'spark', speed: 30, lift: 18, size: 1.5
+    // Boss kill always gets a mini firework stinger
+    TD.spawnComboFireworks(pos[0], pos[1], Math.max(combo, 6));
+  } else if (!milestone && combo >= 4) {
+    // Small sparkle trail on high open combos (not only milestones)
+    TD.spawnFxBurst(pos[0], pos[1] - 4, {
+      count: 3, color: TD.C.gold, kind: 'spark', speed: 24, lift: 14, size: 1.2, life: 0.2
     });
   }
 }

@@ -136,7 +136,13 @@ TD.update = function update(dt) {
   if (r().hitStop > 0) {
     r().hitStop -= dt;
     for (const e of r().enemies) if (e.dying) e.deathTimer -= dt;
-    for (const p of r().particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 60 * dt; p.life -= dt; }
+    for (const p of r().particles) {
+      if (p.delay != null && p.delay > 0) { p.delay -= dt; continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vy += (p.grav != null ? p.grav : 60) * dt;
+      if (p.drag) { p.vx *= (1 - p.drag * dt); p.vy *= (1 - p.drag * dt); }
+      p.life -= dt;
+    }
     r().particles = r().particles.filter(p => p.life > 0);
     for (const d of r().dmgNumbers) { d.y -= 20 * dt; d.life -= dt; }
     r().dmgNumbers = r().dmgNumbers.filter(d => d.life > 0);
@@ -171,7 +177,18 @@ TD.update = function update(dt) {
   TD.updateTowerSiege(dt); // no-op unless TOWER_DAMAGE_ENABLED + mult > 0
 
   for (const p of r().particles) {
-    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 60 * dt; p.life -= dt;
+    if (p.delay != null && p.delay > 0) {
+      p.delay -= dt;
+      continue;
+    }
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vy += (p.grav != null ? p.grav : 60) * dt;
+    if (p.drag) {
+      p.vx *= (1 - p.drag * dt);
+      p.vy *= (1 - p.drag * dt);
+    }
+    p.life -= dt;
   }
   r().particles = r().particles.filter(p => p.life > 0);
   for (const d of r().dmgNumbers) { d.y -= 20 * dt; d.life -= dt; }
