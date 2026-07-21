@@ -402,17 +402,17 @@ TD.drawHud = function drawHud() {
   TD.ctx.fillStyle = TD.C.text;
   TD.ctx.font = '7px monospace';
   TD.ctx.textAlign = 'left';
-  TD.ctx.fillText(waveText, cx, TD.HUD.row1 + 10);
-  // Track name (esp. useful in chill / for music fans)
+  // Wave line; track name sits just under it (raised). Wave preview lower so they don't collide.
+  TD.ctx.fillText(waveText, cx, TD.HUD.row1 + 9);
+  // Track name — compact (chill is already shown via "C" button; avoid long "chill ·" overlap)
   if (!TD.muted && TD.getCurrentMusicTrack) {
     const tr = TD.getCurrentMusicTrack();
     if (tr && tr.name) {
-      TD.ctx.fillStyle = TD.chillAudio ? '#a0d8ef' : '#666';
+      TD.ctx.fillStyle = TD.chillAudio ? '#a0d8ef' : '#777';
       TD.ctx.font = '5px monospace';
-      const prefix = TD.chillAudio ? '♪ chill · ' : '♪ ';
-      let name = prefix + tr.name;
-      if (name.length > 22) name = name.slice(0, 20) + '…';
-      TD.ctx.fillText(name, cx, TD.HUD.row1 + 18);
+      let name = '♪ ' + tr.name;
+      if (name.length > 20) name = name.slice(0, 18) + '…';
+      TD.ctx.fillText(name, cx, TD.HUD.row1 + 16);
     }
   }
 
@@ -426,7 +426,8 @@ TD.drawHud = function drawHud() {
     previewIdx = r().wave + 1;
     previewLabel = TD.t('hud.next');
   }
-  TD.drawWavePreview(cx, TD.HUD.row1 + 20, previewLabel, 50, previewIdx);
+  // Below track name (was +20, overlapped "♪ …")
+  TD.drawWavePreview(cx, TD.HUD.row1 + 24, previewLabel, 50, previewIdx);
   if (r().wavePhase === 'pause' && r().state === TD.STATE.PLAYING) {
     const isT = TD.isTouch;
     const gx = cx + (isT ? 52 : 54), gy = TD.HUD.row1 - (isT ? 1 : 0);
