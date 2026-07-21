@@ -311,9 +311,12 @@ TD.handleClick = function handleClick() {
       TD.setVolume((TD.mouseX - L.vol.x) / L.vol.w);
     }
     if (a === 'mute') {
-      TD.muted = !TD.muted; TD.initAudio();
-      if (TD.muted) TD.bus.emit('music:stop');
-      else if (r().state === TD.STATE.PLAYING || r().state === TD.STATE.PAUSED) TD.bus.emit('music:start');
+      // 3-state: Sound → Chill → Mute → Sound
+      const mode = TD.cycleAudioMode ? TD.cycleAudioMode() : (TD.muted = !TD.muted, TD.muted ? 'muted' : 'normal');
+      const toast = mode === 'chill' ? (TD.t ? TD.t('audio.chillOn') : 'Chill audio')
+        : mode === 'muted' ? (TD.t ? TD.t('audio.muted') : 'Muted')
+        : (TD.t ? TD.t('audio.fullOn') : 'Full audio');
+      r().comboDisplay = { text: toast, life: 1.1, maxLife: 1.1, tier: 1 };
     }
     if (a === 'startWave') TD.skipWavePause();
     if (a === 'upgrade' && r().selectedTower) TD.upgradeTower(r().selectedTower);
@@ -367,13 +370,15 @@ TD.drawHud = function drawHud() {
   const labels = {
     pause: r().state === TD.STATE.PAUSED ? '>' : '||',
     speed1: 'x1', speed2: 'x2', speed3: 'x3',
-    mute: TD.muted ? 'M' : 'S'
+    mute: TD.getAudioModeLabel ? TD.getAudioModeLabel() : (TD.muted ? 'M' : 'S')
   };
   [L.pause, L.speed1, L.speed2, L.speed3, L.mute].forEach(b => {
     const hov = r().hoverUi && r().hoverUi.action === b.action;
-    px(b.x, b.y, b.w, b.h, hov ? TD.C.accent : TD.C.shadow);
+    const chillActive = b.action === 'mute' && TD.chillAudio && !TD.muted;
+    px(b.x, b.y, b.w, b.h, hov || chillActive ? TD.C.accent : TD.C.shadow);
     const speedActions = { speed1: 1, speed2: 2, speed3: 3 };
-    TD.ctx.fillStyle = speedActions[b.action] === r().speedMul ? TD.C.gold : TD.C.text;
+    TD.ctx.fillStyle = speedActions[b.action] === r().speedMul ? TD.C.gold
+      : (chillActive ? '#a0d8ef' : TD.C.text);
     TD.ctx.font = '7px monospace';
     TD.ctx.textAlign = 'center';
     TD.ctx.fillText(labels[b.action], b.x + b.w / 2, b.y + (isT ? 15 : 14));
@@ -382,7 +387,7 @@ TD.drawHud = function drawHud() {
   // Volume bar — exclusive zone after x3 (see getHudCtrlLayout)
   const hovVol = r().hoverUi && r().hoverUi.action === 'volume';
   px(L.vol.x, L.vol.y, L.vol.w, L.vol.h, hovVol ? TD.C.uiLight : TD.C.shadow);
-  px(L.vol.x + 1, L.vol.y + 2, Math.max(1, (L.vol.w - 2) * TD.VOL), L.vol.h - 4, TD.muted ? '#555' : TD.C.gold);
+  px(L.vol.x + 1, L.vol.y + 2, Math.max(1, (L.vol.w - 2) * TD.VOL), L.vol.h - 4, TD.muted ? '#555' : (TD.chillAudio ? '#87ceeb' : TD.C.gold));
   if (hovVol) {
     TD.ctx.fillStyle = TD.C.gold;
     TD.ctx.font = '5px monospace';
@@ -398,6 +403,18 @@ TD.drawHud = function drawHud() {
   TD.ctx.font = '7px monospace';
   TD.ctx.textAlign = 'left';
   TD.ctx.fillText(waveText, cx, TD.HUD.row1 + 10);
+  // Track name (esp. useful in chill / for music fans)
+  if (!TD.muted && TD.getCurrentMusicTrack) {
+    const tr = TD.getCurrentMusicTrack();
+    if (tr && tr.name) {
+      TD.ctx.fillStyle = TD.chillAudio ? '#a0d8ef' : '#666';
+      TD.ctx.font = '5px monospace';
+      const prefix = TD.chillAudio ? '♪ chill · ' : '♪ ';
+      let name = prefix + tr.name;
+      if (name.length > 22) name = name.slice(0, 20) + '…';
+      TD.ctx.fillText(name, cx, TD.HUD.row1 + 18);
+    }
+  }
 
   // Show preview of the wave that is about to / currently relevant for planning
   let previewIdx = r().wave;
@@ -915,7 +932,7 @@ TD.drawPause = function drawPause() {
     'Space: resume   N: next wave early   1-3: speed',
     'Select tower: UP / SELL (or R key)',
     'T (on tower): cycle TARGET MODE',
-    'F: Farthest (threat)  S: Fastest  H: Strongest  C: Closest',
+    'Audio btn: S→C(chill)→M(mute)   C key: toggle chill',
     '3★ = full HP + 0 sells + 0 pauses. FK=air, CN=groups.'
   ];
   help.forEach((ln, i) => {
@@ -1095,6 +1112,26 @@ TD.bindInput = function bindInput() {
     if (e.code === 'KeyR' && r().selectedTower) { TD.sellTower(r().selectedTower); r().selectedTower = null; e.preventDefault(); }
     if (e.code === 'KeyN') TD.skipWavePause();
     if (e.code === 'KeyV') { TD.initAudio(); TD.cycleVolume(); }
+    // C = jump to chill toggle without full mute cycle (when not muted)
+    if (e.code === 'KeyC' && !TD.debug) {
+      e.preventDefault();
+      TD.initAudio();
+      if (TD.muted) {
+        TD.muted = false;
+        TD.chillAudio = true;
+      } else {
+        TD.chillAudio = !TD.chillAudio;
+      }
+      localStorage.setItem('chillAudio', TD.chillAudio ? '1' : '0');
+      if (TD.applyChillAudio) TD.applyChillAudio();
+      if (!TD.muted && (r().state === TD.STATE.PLAYING || r().state === TD.STATE.PAUSED)) {
+        TD.bus.emit('music:start');
+      }
+      r().comboDisplay = {
+        text: TD.chillAudio ? TD.t('audio.chillOn') : TD.t('audio.fullOn'),
+        life: 1.1, maxLife: 1.1, tier: 1
+      };
+    }
     if (e.code === 'F3') { TD.toggleDebug(); e.preventDefault(); }
     if (e.code === 'KeyE' && TD.debug) TD.toggleMapEditor();
     if (e.code === 'KeyC' && TD.debug && TD.mapEditor) {

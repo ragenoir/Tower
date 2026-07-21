@@ -22,7 +22,7 @@ config → i18n → data/* → events → maps/* → storage → achievements �
 
 ## Controls
 Menu: ←→ map · ↑↓ mode · Q difficulty (Easy/Normal/Hard) · Seed/Daily · Space  
-Game: click · N wave · T target · R sell · V vol · 1-3 speed
+Game: click · N wave · T target · R sell · V vol · **audio S/C/M** · C chill · 1-3 speed
 
 ## Dev
 `node scripts/smoke.js` · re-upload itch zip after content drops
@@ -35,6 +35,6 @@ Game: click · N wave · T target · R sell · V vol · 1-3 speed
 | Demo / share | `js/demo.js`, `js/share.js` |
 
 ## Current Intent (2026-07-21)
-Shipped. **v1.4.0 Hard difficulty**. Next: chill audio / feedback / itch re-upload.
+Shipped. **v1.4.1 chill audio**. Next: itch re-upload / feedback.
 
 **Update this file** on structure changes. Max **50 lines**.

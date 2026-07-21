@@ -188,6 +188,24 @@ const checks = [
   () => {
     TD.run.difficulty = 'hard';
     return TD.getDifficulty().enemyHpMult === TD.DIFFICULTY.hard.enemyHpMult;
+  },
+  // Chill audio
+  () => typeof TD.cycleAudioMode === 'function' && typeof TD.getAudioModeLabel === 'function',
+  () => {
+    const prevM = TD.muted, prevC = TD.chillAudio;
+    TD.muted = false; TD.chillAudio = false;
+    const a = TD.cycleAudioMode() === 'chill' && TD.chillAudio;
+    const b = TD.cycleAudioMode() === 'muted' && TD.muted;
+    const c = TD.cycleAudioMode() === 'normal' && !TD.muted && !TD.chillAudio;
+    TD.muted = prevM; TD.chillAudio = prevC;
+    if (TD.applyChillAudio) TD.applyChillAudio();
+    return a && b && c;
+  },
+  () => {
+    TD.chillAudio = true;
+    const t = TD.computeMusicTensionTarget(2);
+    TD.chillAudio = false;
+    return t === 0;
   }
 ];
 

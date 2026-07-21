@@ -141,6 +141,7 @@ TD.TARGET_MODES = ['far', 'fast', 'strong', 'close']; // cycle order for T key; 
 // 3 = maximum anxiety after >= 5/6
 // When threat recedes, smoothly drops (hysteresis + lerp in updateMusicTension)
 TD.computeMusicTensionTarget = function computeMusicTensionTarget(prevTier = 0) {
+  if (TD.chillAudio) return 0;
   const run = r();
   if (run.state !== TD.STATE.PLAYING || run.wavePhase !== 'spawning') return 0;
 

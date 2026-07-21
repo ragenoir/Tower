@@ -4,9 +4,11 @@ const TD = window.TD;
 
 TD.audioCtx = null;
 TD.muted = false;
+// Chill = low-tension music (no anxiety risers), softer SFX. Persisted.
+TD.chillAudio = localStorage.getItem('chillAudio') === '1';
 TD.VOL = parseFloat(localStorage.getItem('volume') || '0.3');
 TD.MUSIC_VOL = 1.0;
-TD.SFX_VOL = 1.0;
+TD.SFX_VOL = TD.chillAudio ? 0.62 : 1.0;
 TD._noiseBuf = null;
 TD._audioReady = null;
 
@@ -20,6 +22,55 @@ TD.cycleVolume = function cycleVolume() {
   let i = steps.findIndex(s => Math.abs(s - TD.VOL) < 0.05);
   if (i < 0) i = 1;
   TD.setVolume(steps[(i + 1) % steps.length]);
+};
+
+/** Apply chill flag to SFX gain + tension. Call after load / toggle. */
+TD.applyChillAudio = function applyChillAudio() {
+  TD.SFX_VOL = TD.chillAudio && !TD.muted ? 0.62 : 1.0;
+  if (TD.chillAudio && TD.run) {
+    TD.run.musicTension = Math.min(TD.run.musicTension || 0, 0.2);
+    TD.run.musicTensionTier = 0;
+    TD._musicTierPrev = 0;
+  }
+};
+
+/**
+ * Mute button 3-state: Sound (S) → Chill (C) → Mute (M) → Sound.
+ * Returns mode string: 'normal' | 'chill' | 'muted'
+ */
+TD.cycleAudioMode = function cycleAudioMode() {
+  TD.initAudio();
+  if (TD.muted) {
+    TD.muted = false;
+    TD.chillAudio = false;
+  } else if (TD.chillAudio) {
+    TD.chillAudio = false;
+    TD.muted = true;
+  } else {
+    TD.chillAudio = true;
+  }
+  localStorage.setItem('chillAudio', TD.chillAudio ? '1' : '0');
+  TD.applyChillAudio();
+  if (TD.muted) {
+    TD.bus.emit('music:stop');
+  } else {
+    const st = TD.run && TD.run.state;
+    if (st === TD.STATE.PLAYING || st === TD.STATE.PAUSED) {
+      TD.bus.emit('music:start');
+    }
+  }
+  return TD.muted ? 'muted' : (TD.chillAudio ? 'chill' : 'normal');
+};
+
+TD.getAudioMode = function getAudioMode() {
+  if (TD.muted) return 'muted';
+  if (TD.chillAudio) return 'chill';
+  return 'normal';
+};
+
+TD.getAudioModeLabel = function getAudioModeLabel() {
+  const m = TD.getAudioMode();
+  return m === 'muted' ? 'M' : m === 'chill' ? 'C' : 'S';
 };
 
 TD.pitchVar = function pitchVar(base, spread = 0.06) {
@@ -656,6 +707,7 @@ TD._playPadChord = function _playPadChord(rootHz, tension, track) {
   let det = track.padDetune || 0.012;
   let dur = 0.82 + Math.min(0.95, tension * 0.38);
   let v = TD.VOL * TD.MUSIC_VOL * (track.volMul || 0.95) * (0.044 + tension * 0.018);
+  if (TD.chillAudio) v *= 0.7;
 
   // ensure a pad bus exists for sidechain
   TD._ensurePadGain();
@@ -904,6 +956,7 @@ TD._setMusicBass = function _setMusicBass(baseHz, tension, track) {
   else if (tension > 2.3) f = baseHz * 1.5;
 
   let vol = (0.06 + tension * 0.048) * TD.VOL * TD.MUSIC_VOL * (track.volMul || 0.95);
+  if (TD.chillAudio) vol *= 0.55; // softer bed
   // For The Drum, the rhythmic pulses are the main bass, so keep drone subtle
   if (track.pulsingBass) vol *= 0.30;
   // For Unity simple root bass, keep drone low and supporting
@@ -943,19 +996,23 @@ TD._musicTick = function _musicTick() {
     TD.musicId = setTimeout(TD._musicTick, 320);
     return;
   }
-  const tns = Math.max(0, Math.min(3, run.musicTension || 0));
-  const tier = run.musicTensionTier || 0;
+  let tns = Math.max(0, Math.min(3, run.musicTension || 0));
+  let tier = run.musicTensionTier || 0;
+  if (TD.chillAudio) {
+    tns = Math.min(tns, 0.2);
+    tier = 0;
+  }
 
-  // riser when anxiety tier increases (enemies getting dangerously close)
-  if (tier > (TD._musicTierPrev || 0)) {
+  // riser when anxiety tier increases (enemies getting dangerously close) — off in chill
+  if (!TD.chillAudio && tier > (TD._musicTierPrev || 0)) {
     TD._playMusicRiser(tier);
   }
   TD._musicTierPrev = tier;
 
   const track = TD.getCurrentMusicTrack() || TD.MUSIC_TRACKS['meadow-1'];
 
-  // tension speeds things up but at very high t we thin the arrangement for clarity
-  const speed = 1 + tns * 0.23;
+  // tension speeds things up; chill stays slightly slower / relaxed
+  const speed = TD.chillAudio ? (0.82 + tns * 0.05) : (1 + tns * 0.23);
   const interval = Math.max(88, Math.round(track.baseInterval / speed));
 
   const step = (TD.musicStep || 0);
@@ -1028,8 +1085,8 @@ TD._musicTick = function _musicTick() {
     TD._playLeadNote(track, step, tns);
   }
 
-  // high-tension accents: reduced at extreme anxiety so it doesn't clutter
-  if (tns > 1.55 && tns < 2.35 && (step % (tier > 2 ? 2 : 3) === 0)) {
+  // high-tension accents: off in chill; reduced at extreme anxiety so it doesn't clutter
+  if (!TD.chillAudio && tns > 1.55 && tns < 2.35 && (step % (tier > 2 ? 2 : 3) === 0)) {
     const accVol = TD.VOL * TD.MUSIC_VOL * (0.028 + (tns - 1.5) * 0.03);
     TD._playAt(t => TD._noiseAt(t, 0.014, accVol));
   }
@@ -1040,6 +1097,14 @@ TD._musicTick = function _musicTick() {
 
 TD.updateMusicTension = function updateMusicTension(dt) {
   if (TD.run.state !== TD.STATE.PLAYING) return;
+  // Chill: hold near zero anxiety — no risers, soft pad
+  if (TD.chillAudio) {
+    const cur = TD.run.musicTension || 0;
+    TD.run.musicTensionTier = 0;
+    TD.run.musicTension = cur + (0 - cur) * Math.min(1, dt / 0.6);
+    TD._musicTierPrev = 0;
+    return;
+  }
   const prev = TD.run.musicTensionTier || 0;
   const target = TD.computeMusicTensionTarget(prev);
   TD.run.musicTensionTier = target;

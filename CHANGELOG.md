@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1 — 2026-07-21
+- **Chill audio mode**: low tension (no risers), softer SFX, slower groove
+- Audio button cycles **S → C (chill) → M (mute)**; **C** key toggles chill
+- Track name in HUD (♪); toast on mode change; persisted in localStorage
+
 ## 1.4.0 — 2026-07-21
 - **Hard difficulty** (Q cycles Easy → Normal → Hard)
 - Hard: gold ×0.85, enemy HP ×1.22, siege chips ×1.45 (campaign still chip-only)
