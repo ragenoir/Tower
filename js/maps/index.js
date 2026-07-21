@@ -113,7 +113,10 @@ TD.cycleMenuMap = function cycleMenuMap(dir) {
 };
 
 TD.cycleMenuDifficulty = function cycleMenuDifficulty() {
-  TD.run.menuDifficulty = TD.run.menuDifficulty === 'easy' ? 'normal' : 'easy';
+  const order = TD.DIFFICULTY_ORDER || ['easy', 'normal', 'hard'];
+  const cur = TD.run.menuDifficulty || 'normal';
+  const i = order.indexOf(cur);
+  TD.run.menuDifficulty = order[(i < 0 ? 0 : i + 1) % order.length];
 };
 
 TD.loadMap('meadow');

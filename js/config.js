@@ -50,9 +50,12 @@ TD.TOWER_DAMAGE_DESTROY = true; // allow destroy/downgrade outside campaign
 TD.MAX_PROJECTILES = 80;
 
 TD.DIFFICULTY = {
-  easy:   { label: 'Easy',   goldMult: 1.25, enemyHpMult: 0.82 },
-  normal: { label: 'Normal', goldMult: 1,    enemyHpMult: 1 }
+  easy:   { label: 'Easy',   goldMult: 1.25, enemyHpMult: 0.82, siegeMult: 0.6 },
+  normal: { label: 'Normal', goldMult: 1,    enemyHpMult: 1,    siegeMult: 1 },
+  // Hard: leaner economy, tankier waves; siege chips a bit more (still campaign chip-only)
+  hard:   { label: 'Hard',   goldMult: 0.85, enemyHpMult: 1.22, siegeMult: 1.45 }
 };
+TD.DIFFICULTY_ORDER = ['easy', 'normal', 'hard'];
 
 TD.MENU_UI = {
   mapY: 38, mapH: 34, mapW: 48, mapGap: 10, // 5 maps must fit 384px wide
@@ -77,5 +80,5 @@ TD.urlMode = __params.get('mode') || null;
 TD.urlDiff = __params.get('diff') || null;
 TD.urlSeed = __params.get('seed') || null;
 TD.urlAutostart = __params.has('autostart') || __params.get('start') === '1';
-TD.VERSION = '1.3.2';
+TD.VERSION = '1.4.0';
 })();

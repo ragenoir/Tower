@@ -15,13 +15,13 @@ js/… (share · game · demo · ui · maps/* · data/*)  graphics/*  scripts/sm
 config → i18n → data/* → events → maps/* → storage → achievements → audio → graphics/* → share → game → demo → ui → debug → main.
 
 ## Features
-- 5 maps · Campaign 15 waves · Endless · Easy/Normal · 3★ rules · 8 achievements
+- 5 maps · Campaign 15 waves · Endless · **Easy/Normal/Hard** · 3★ rules · 8 achievements
 - **Conflux**: portal warp (seeded; runners love it; bosses walk full path)
 - **Rift**: flyers shortcut the chasm
 - Seeded variants + Daily · deep links · Results Copy/PNG · demo F4 · procedural audio · PWA
 
 ## Controls
-Menu: ←→ map · ↑↓ mode · Q difficulty · Seed/Daily · Space  
+Menu: ←→ map · ↑↓ mode · Q difficulty (Easy/Normal/Hard) · Seed/Daily · Space  
 Game: click · N wave · T target · R sell · V vol · 1-3 speed
 
 ## Dev
@@ -35,6 +35,6 @@ Game: click · N wave · T target · R sell · V vol · 1-3 speed
 | Demo / share | `js/demo.js`, `js/share.js` |
 
 ## Current Intent (2026-07-21)
-Shipped. **v1.3.1 visual pack** (juice + towers + map tiles). Next: Hard or feedback-driven polish.
+Shipped. **v1.4.0 Hard difficulty**. Next: chill audio / feedback / itch re-upload.
 
 **Update this file** on structure changes. Max **50 lines**.

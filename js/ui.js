@@ -629,12 +629,14 @@ TD.drawMenu = function drawMenu() {
   TD.ctx.fillStyle = r().menuMode === 'endless' ? TD.C.gold : TD.C.text;
   TD.ctx.fillText('Endless', TD.W / 2 + u.modeW / 2 + 2, cy + 11);
 
-  const diff = TD.DIFFICULTY[r().menuDifficulty] || TD.DIFFICULTY.normal;
+  const diffId = r().menuDifficulty || 'normal';
   const hovDiff = r().hoverMenu && r().hoverMenu.action === 'difficulty';
   px(TD.W / 2 - 36, diffY, 72, u.diffH, hovDiff ? TD.C.accent : TD.C.shadow);
-  TD.ctx.fillStyle = r().menuDifficulty === 'easy' ? TD.C.gold : TD.C.text;
+  TD.ctx.fillStyle = diffId === 'easy' ? TD.C.gold
+    : diffId === 'hard' ? TD.C.baseDmg
+    : TD.C.text;
   TD.ctx.font = '6px monospace';
-  TD.ctx.fillText(TD.getDiffLabel(r().menuDifficulty), TD.W / 2, diffY + 10);
+  TD.ctx.fillText(TD.getDiffLabel(diffId), TD.W / 2, diffY + 10);
 
   const hovStart = r().hoverMenu && r().hoverMenu.action === 'start';
   px(TD.W / 2 - 46, startY, 92, u.startH, hovStart ? TD.C.accent : TD.C.ui);

@@ -5,9 +5,9 @@
 **Play:** https://ragenoir.itch.io/tower · https://ragenoir.github.io/Tower/  
 **Repo:** https://github.com/ragenoir/Tower
 
-**Done**: viral MVP ✓ · tech debt ✓ · GH Pages ✓ · itch ✓ · **Conflux map twist ✓**
+**Done**: viral MVP ✓ · tech debt ✓ · GH Pages ✓ · itch ✓ · Conflux ✓ · visual/juice ✓ · **Hard difficulty ✓**
 
-**Still open**: Hard difficulty · chill audio · skins · more map twists · itch cover/GIF polish
+**Still open**: chill audio · skins · more map twists · itch re-upload latest · cover/GIF polish
 
 **Key strengths to double down on**: procedural audio + tension, demo as trailer, shareable seeds, no-build instant play, 3★ perfect runs.
 

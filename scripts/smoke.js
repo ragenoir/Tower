@@ -171,7 +171,24 @@ const checks = [
   () => typeof TD.updateDemo === 'function' && typeof TD.toggleDemo === 'function' &&
     Array.isArray(TD.DEMO_CYCLE) && TD.DEMO_CYCLE.length === TD.MAP_IDS.length,
   // Share module extracted
-  () => typeof TD.getDailySeed === 'function' && typeof TD.buildDeepLink === 'function'
+  () => typeof TD.getDailySeed === 'function' && typeof TD.buildDeepLink === 'function',
+  // Hard difficulty
+  () => TD.DIFFICULTY.hard && TD.DIFFICULTY.hard.enemyHpMult > 1 && TD.DIFFICULTY.hard.goldMult < 1,
+  () => Array.isArray(TD.DIFFICULTY_ORDER) && TD.DIFFICULTY_ORDER.length === 3,
+  () => {
+    TD.run.menuDifficulty = 'easy';
+    TD.cycleMenuDifficulty();
+    const a = TD.run.menuDifficulty === 'normal';
+    TD.cycleMenuDifficulty();
+    const b = TD.run.menuDifficulty === 'hard';
+    TD.cycleMenuDifficulty();
+    const c = TD.run.menuDifficulty === 'easy';
+    return a && b && c;
+  },
+  () => {
+    TD.run.difficulty = 'hard';
+    return TD.getDifficulty().enemyHpMult === TD.DIFFICULTY.hard.enemyHpMult;
+  }
 ];
 
 for (const [i, fn] of checks.entries()) {

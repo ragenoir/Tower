@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0 — 2026-07-21
+- **Hard difficulty** (Q cycles Easy → Normal → Hard)
+- Hard: gold ×0.85, enemy HP ×1.22, siege chips ×1.45 (campaign still chip-only)
+- Menu Hard label in red; en/uk strings
+
 ## 1.3.2 — 2026-07-21
 - Combo fireworks: multi-shell staggered bursts (tier x3/x6/x9/x12+), gold rain, screen punch
 - New particle kind `fw` + delay/drag/grav for firework trajectories

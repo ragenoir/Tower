@@ -843,6 +843,8 @@ TD.updateTowers = function updateTowers(dt) {
 TD.updateTowerSiege = function updateTowerSiege(dt) {
   if (!TD.TOWER_DAMAGE_ENABLED || !TD.TOWER_DAMAGE_CHANCE_MULT) return;
   let mult = TD.TOWER_DAMAGE_CHANCE_MULT;
+  const diff = TD.getDifficulty ? TD.getDifficulty() : null;
+  if (diff && diff.siegeMult) mult *= diff.siegeMult;
   if (TD.debug) mult = Math.max(mult, 0.8);
   const sd = dt * r().speedMul;
   for (const t of r().towers) {
